@@ -1,4 +1,6 @@
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 import gmsh
 import sys
@@ -54,6 +56,32 @@ class MyDevice:
         :return: None
         """
         self.empty_cache()
+
+
+class EdgeDetection(nn.Module):
+    def __init__(self):
+        super(EdgeDetection, self).__init__()
+        # Define a 3x3x3 kernel for the erosion operation
+        kernel = torch.ones((1, 1, 3, 3, 3), dtype=torch.float32)
+        self.register_buffer('kernel', kernel)
+
+    def forward(self, volume):
+        # Add batch and channel dimensions to the volume
+        volume = volume.unsqueeze(0).unsqueeze(0)  # Shape: (1, 1, nx, ny, nz)
+
+        # Apply 3D erosion using 3D convolution with the registered kernel
+        eroded_volume = F.conv3d(volume, self.kernel, padding=1)  # Ensure same size output
+        eroded_volume = ( eroded_volume == self.kernel.sum()).float()  # Binary eroded volume
+
+        # Subtract the eroded volume from the original volume to get the boundary
+        boundary = volume - eroded_volume
+
+        # Set the boundary values to 0.5
+        volume = volume.squeeze()  # Remove batch and channel dimensions
+        boundary = boundary.squeeze()  # Remove batch and channel dimensions
+        volume[boundary == 1.0] = 0.5
+
+        return volume
 
 
 def loadGeom(filename: str):
@@ -249,7 +277,6 @@ def _process_chunk(args, file):
         el_tag, _, _, _, _, _ = gmsh.model.mesh.getElementByCoordinates(x, y, z, dim=3)
         if el_tag in phys_ele:
             local_c[i - start_idx] = c_zero
-        #pbar.update()
 
     return local_c.numpy()
 
@@ -380,7 +407,10 @@ def readVTK(filename: str):
                     try:
                         value = int(value)
                     except ValueError:
-                        value = float(value)
+                        try:
+                            value = float(value)
+                        except ValueError:
+                            pass
 
                     config[key] = value
             if "DIMENSIONS" in line:
@@ -410,7 +440,8 @@ def saveFrame(c_device: torch.Tensor, t: int, freq, config: dict, path="output/"
     """
 
     if isinstance(freq, list):
-        if t in freq:
+        if t == freq[0]:
+            freq.pop(0)
             c = c_device.cpu()
             mass = evalTotalMass(c, config["dX"], config["dX"], config["dX"])
             print(f"Total mass at time {t}: {mass:.6f}")
@@ -448,7 +479,7 @@ def evalTotalMass(c_device: torch.Tensor, dx: float, dy: float, dz: float):
     :return: float, the mass of the composition field
     """
     
-    return (torch.sum(c_device.cpu())*dx*dy*dz).item()
+    return (torch.sum(c_device)*dx*dy*dz).item()
 
 
 def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz, dx, dy, dz):
@@ -459,7 +490,7 @@ def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz, dx, dy, dz):
 
     :return: float, the total energy of the composition field
     """
-    # perform fft on the composition field
+    # evaluate the bulk free energy (double well potential)
     f_0 = A*c_device*c_device*(1.0 - c_device)*(1.0 - c_device)
 
     # compute the gradient of the composition field
@@ -475,9 +506,8 @@ def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz, dx, dy, dz):
     f_int = kappa/2*grad_c_squared
 
     # compute the total energy
-    energy = torch.sum(f_0 + f_int)*dx*dy*dz
-    total_energy = energy.cpu().item()
-    del energy, f_0, grad_c_1, grad_c_2, grad_c_3, grad_c, grad_c_squared, f_int
+    total_energy = (torch.sum(f_0 + f_int)*dx*dy*dz).item()
+    
     return total_energy
 
 

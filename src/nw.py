@@ -18,21 +18,27 @@ from processing import *
 
 # composition params
 c_zero = 1.0
+
 c_noise = 1e-3
 seed = 3009
 
 # time params
 dt = 1.0
-t_end = 1000
-freq = 100 #[0, 100//dt, 2000//dt, 10000//dt, 30000//dt]
-
+t_start = 0
+t_end = 100
+freq = 100
 # solver params
 M = 1.0
-A = 1.0
+A = 2.0
 kappa = 1.0
 alpha = 0.5
 
-name = "time"
+# output params and flags
+RESTART = False
+SPINODAL = False
+PATH = "../output"
+EVAL = False
+SAVE = True
 
 if __name__ == '__main__':
     # ----------------- DEVICE ----------------- #
@@ -48,13 +54,6 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # find flag for post-processing or restart of sim (-pproc or -restart) in sys.argv
-    RESTART = False
-    SPINODAL = False
-    PATH = "../output/"
-    EVAL = False
-    SAVE = True
-    t_start = 0
-
     if "-restart" in sys.argv:
         RESTART = True
         option = sys.argv.index("-restart")
@@ -68,14 +67,19 @@ if __name__ == '__main__':
         EVAL = True
     if "-no-save" in sys.argv:
         SAVE = False
+    if "-seed"  in sys.argv:
+        option = sys.argv.index("-seed")
+        seed = int(sys.argv[option+1])
 
     c = None
+
+    FILENAME = f"time_randn"
 
     nb_steps = int((t_end-t_start)/dt)
 
     if RESTART:
         # ----------------- RESTART ----------------- #
-        filename = f"{PATH}time_{t_start:06}.vtk"
+        filename = f"{PATH}/{FILENAME}_{t_start:06}.vtk"
         print(f"Restarting from {filename} ...")
 
         c, config = readVTK(filename)
@@ -104,7 +108,6 @@ if __name__ == '__main__':
         if not SPINODAL:
             print(f'New simulation...')
             # Set .geo file
-            tread = time.time()
             config = loadGeom(sys.argv[1])
 
             print(f'--------------------------------------------------')
@@ -134,13 +137,19 @@ if __name__ == '__main__':
             print("Preprocessing...")
             c, coords = makeCompositionFieldParallel((nx, ny, nz), (Lx, Ly, Lz), c_zero, file=sys.argv[1])
 
-            # get the sorted composition field, sorted indices and sorted node tags
-            #c, coords = sortByCoords(c, coords)
+            # print time 0 frame
+            if SAVE:
+                writeVTK(c, t_start, config, path=PATH, filename=FILENAME)
+                mass = evalTotalMass(c, dx, dy, dz)
+                print(f"Total mass at time {t_start}: {mass:.6f}")
+                print(f"Frame {t_start} written in {PATH}{FILENAME}_{t_start:06}.vtk.")
 
             # add noise to the composition field
             print("Adding noise to the composition field...")
             torch.manual_seed(seed)
-            random_noise = c_noise * (0.5 - torch.rand(size=c.shape))
+            random_noise = c_noise * (0.5 - torch.rand(size=c.shape, dtype=torch.float32))
+
+            random_noise = torch.randn(size=c.shape, dtype=torch.float32) * c_noise
 
             c = c + random_noise
         else:
@@ -148,9 +157,10 @@ if __name__ == '__main__':
             dX = 1.0
             dx, dy, dz = dX, dX, dX
             nx, ny, nz = int(1024//dX), int(1024//dX), 1
+            c_noise = 0.2
             torch.manual_seed(seed)
-            c = 0.5 + 0.05 * (0.5 - torch.rand((nx, ny, nz), dtype=torch.float32))
-
+            #c = 0.5 + c_noise * (0.5 - torch.rand((nx, ny, nz), dtype=torch.float32))
+            c = 0.5 + torch.randn((nx, ny, nz), dtype=torch.float32) * c_noise
             config = {"Nx": nx, "Ny": ny, "Nz": nz, 
                       "Lx": nx*dX, "Ly": ny*dX, "Lz": nz*dX, 
                       "dX": dX, "type": "spinodal"}
@@ -162,6 +172,13 @@ if __name__ == '__main__':
             print(f'Configuration: spinodal decomposition')
             print(f'\nSolving on Device: {Device_name}')
             print(f'--------------------------------------------------')
+
+            if SAVE:
+                writeVTK(c, t_start, config, path=PATH, filename=FILENAME)
+                if EVAL:
+                    mass = evalTotalMass(c, dx, dy, dz)
+                    print(f"Total mass at time {t_start}: {mass:.6f}")
+                print(f"Frame {t_start} written in {PATH}{FILENAME}_{t_start:06}.vtk.")
 
     # ----------------- SOLVER ----------------- #
     with torch.no_grad():
@@ -207,17 +224,11 @@ if __name__ == '__main__':
         q2_device_fft = torch.zeros_like(c_device, dtype=torch.complex64)
         q3_device_fft = torch.zeros_like(c_device, dtype=torch.complex64)
 
-    if not RESTART and SAVE:
-        writeVTK(c, t_start, config, path=PATH, filename=name)
-        if EVAL:
-            mass = evalTotalMass(c, dx, dy, dz)
-            print(f"Total mass at time {t_start}: {mass:.6f}")
-        print(f"Frame {t_start} written in time_{t_start:06}.vtk.")
-
     # ----------------- TIME LOOP ----------------- #
     if EVAL:
-        mass = torch.zeros(nb_steps, dtype=torch.float32, device='cpu')
-        energy = torch.zeros(nb_steps, dtype=torch.float32, device='cpu')
+        mass_device = torch.zeros(nb_steps, dtype=torch.float32)
+        energy_device = torch.zeros(nb_steps, dtype=torch.float32)
+
 
     with torch.no_grad():
         for t in tqdm(range(t_start+1, t_start+nb_steps+1), desc="Solving..."):
@@ -232,6 +243,10 @@ if __name__ == '__main__':
 
             torch.fft.fftn(g_device_fft, out=g_device_fft)
             torch.fft.fftn(c_device_fft, out=c_device_fft)
+
+            if EVAL:
+                mass_device[t-1] = evalTotalMass(c_device, dx, dy, dz)
+                energy_device[t-1] = evalTotalEnergy(c_device, c_device_fft, A, kappa, kx_mesh, ky_mesh, kz_mesh, dx, dy, dz)
 
             # compute r
             compute_r(r_device_fft, c_device_fft, g_device_fft, kappa, k2)
@@ -252,25 +267,20 @@ if __name__ == '__main__':
             torch.fft.fftn(q3_device_fft, out=q3_device_fft)
 
             # update c
-            solve_ch(c_device_fft, q1_device_fft, q2_device_fft, q3_device_fft, kx_mesh, ky_mesh, kz_mesh, k4, kappa, alpha, dt)
+            compute_c_plus_one(c_device_fft, q1_device_fft, q2_device_fft, q3_device_fft, kx_mesh, ky_mesh, kz_mesh, k4, kappa, alpha, dt)
 
             # bring back to real space
             c_device.copy_(torch.fft.ifftn(c_device_fft, dim=(0, 1, 2), out=c_device_fft).real)
 
-            if EVAL:
-                mass[t-1] = evalTotalMass(c_device, dx, dy, dz)
-                energy[t-1] = evalTotalEnergy(c_device, c_device_fft, A, kappa, kx_mesh, ky_mesh, kz_mesh, dx, dy, dz)
-
             if SAVE:
-                saveFrame(c_device, t, freq, config, path=PATH, filename=name)
+                saveFrame(c_device, t, freq, config, path=PATH, filename=FILENAME)
 
     # ----------------- POST-PROCESSING ----------------- #
     if EVAL:
-        mass_filename = f"mass_{t_start}-{t_end}_{dt}"
-        energy_filename = f"energy_{t_start}-{t_end}_{dt}"
-        t_arr = np.arange(t_start, t_end, dt)
-        torch.save(mass, f"{PATH}{mass_filename}.pt")
-        torch.save(energy, f"{PATH}{energy_filename}.pt")
+        mass_filename = f"mass_randn"
+        energy_filename = f"energy_randn"
+        torch.save(mass_device.cpu(), f"{PATH}/{mass_filename}.pt")
+        torch.save(energy_device.cpu(), f"{PATH}/{energy_filename}.pt")
 
     # pvd_filename = f"{PATH}simulation.pvd"
     # create_binary_pvd(PATH, pvd_filename=pvd_filename)

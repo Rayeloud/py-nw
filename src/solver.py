@@ -117,7 +117,7 @@ def compute_q(out, y1_device, y2_device, y3_device, phi_device):
     out[2].copy_(phi_device*y3_device)
 
 
-def solve_ch(out, q1_device_fft, q2_device_fft, q3_device_fft, kx, ky, kz, k4, kappa, alpha, dt):
+def compute_c_plus_one(out, q1_device_fft, q2_device_fft, q3_device_fft, kx, ky, kz, k4, kappa, alpha, dt):
     """
     Solve the Cahn-Hilliard equation in Fourier space
 
@@ -140,3 +140,4 @@ def solve_ch(out, q1_device_fft, q2_device_fft, q3_device_fft, kx, ky, kz, k4, k
     out.imag.add_(dt*(kx*q1_device_fft.real +
                       ky*q2_device_fft.real +
                       kz*q3_device_fft.real).div_(denominator))
+    
