@@ -4,11 +4,12 @@ Include "nanowire_data.pro";
 SetFactory("OpenCASCADE");
 
 // Parameters
+READONLY = DefineNumber(1, Choices{0, 1}, Name "Parameters/0Read Only");
 _dX = DefineNumber(dX, Name "Parameters/dX", Visible 0);
-_offset = DefineNumber(offset, Name "Parameters/Center offset", Visible 0);
+_offset = DefineNumber(offset, Name "Parameters/Center offset", Visible 1);
 
-_R_1 = DefineNumber(R_1, Name "Parameters/r_1", Visible 0);
-_R_2 = DefineNumber(R_2, Name "Parameters/r_2", Visible 0);
+_R_1 = DefineNumber(R_1/dX, Name "Parameters/r_1", Visible 0);
+_R_2 = DefineNumber(R_2/dX, Name "Parameters/r_2", Visible 0);
 
 SHAPE_FLAG = DefineNumber(SHAPE, Choices{
     0="Cylindrical",
@@ -32,13 +33,16 @@ N = DefineNumber(96, Name "Parameters/N");
 L = Lx;
 H = Ly;
 
-Lx = DefineNumber(Lx, Name "Parameters/Lx", ReadOnly 1);
-Ly = DefineNumber(Ly, Name "Parameters/Ly", ReadOnly 1);
-Lz = DefineNumber(Lz, Name "Parameters/Lz", ReadOnly 1);
+Lx = DefineNumber(Lx, Name "Parameters/Lx", ReadOnly READONLY);
+Ly = DefineNumber(Ly, Name "Parameters/Ly", ReadOnly READONLY);
+Lz = DefineNumber(Lz, Name "Parameters/Lz", ReadOnly READONLY);
 
-Nx = DefineNumber(N*L/H, Name "Parameters/Nx", ReadOnly 1);
-Ny = DefineNumber(N, Name "Parameters/Ny", ReadOnly 1);
-Nz = DefineNumber(N*L/H, Name "Parameters/Nz", ReadOnly 1);
+// Nx = DefineNumber(N*L/H, Name "Parameters/Nx", ReadOnly READONLY);
+// Ny = DefineNumber(N, Name "Parameters/Ny", ReadOnly READONLY);
+// Nz = DefineNumber(N*L/H, Name "Parameters/Nz", ReadOnly READONLY);
+Nx = DefineNumber(Lx/dX, Name "Parameters/Nx", ReadOnly READONLY);
+Ny = DefineNumber(Ly/dX, Name "Parameters/Ny", ReadOnly READONLY);
+Nz = DefineNumber(Lz/dX, Name "Parameters/Nz", ReadOnly READONLY);
 
 // Define domain
 Point(1) = {0, 0, 0, 100.0}; Point(2) = {L, 0, 0, 100.0};
@@ -73,7 +77,7 @@ If (SHAPE_FLAG == 1)
     center_y = Ly/2 - offset;
     theta = 2*Pi/5;
     theta_offset = Pi / 2 + theta; //offset to start from the top
-    R_pent = Sqrt(R1*R1 * *Pi/(5*Sin(theta)));
+    R_pent = Sqrt(2*Pi/(5*Sin(theta)))*R1;
     // Define points
     For i In {1:5}
         x_i = center_x + R_pent*Cos(i*theta+theta_offset);
@@ -181,7 +185,7 @@ If (NB_NW_PARAM == 1 && angle2 > 0)
     If (SHAPE_FLAG == 1)
         theta = 2*Pi/5;
         theta_offset = Pi / 2 + theta; //offset to start from the top
-        R_pent = Sqrt(R2 * R2 * 5*Pi/(2*Sin(theta)));
+        R_pent = Sqrt(2*Pi/(5*Sin(theta)))*R2;
         // Define points
         For i In {1:5}
             x_i = X + R_pent*Cos(i*theta+theta_offset);
@@ -285,7 +289,7 @@ Else
 
     // First NW (one NW config)
     If (SHAPE_FLAG != 1)
-        Transfinite Curve {19, 21, 23, 24, 5, 6, 7, 8} = 30 Using Progression 1;
+        Transfinite Curve {19, 21, 23, 24, 5, 6, 7, 8} = 15 Using Progression 1;
         Transfinite Curve {17, 22, 18, 20} = 1 Using Progression 1;
         Transfinite Surface {18}; Transfinite Surface {21}; Transfinite Surface {19}; Transfinite Surface {20};
         Transfinite Surface {11}; Transfinite Surface {23};

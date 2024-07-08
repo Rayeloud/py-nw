@@ -350,7 +350,9 @@ def writeVTK(data: torch.Tensor, t: int, config: dict, path="output/", filename=
 
     data = data.numpy()
     nx, ny, nz = data.shape
-    spacing = (1, 1, 1)
+    # spacing = (1, 1, 1)
+    lx, ly, lz = config["Lx"], config["Ly"], config["Lz"]
+    spacing = (config["dX"], config["dX"], config["dX"])
     origin = (0, 0, 0)
 
     filename = f"{path}{filename}_{t:06}.vtk"
@@ -418,6 +420,7 @@ def readVTK(filename: str):
                 ny = int(line.split()[2])
                 nz = int(line.split()[3])
 
+
         # Read the binary data
         data_flat = np.fromfile(file, dtype='>f4').astype(np.float32)  # Big-endian double precision float -> np.float32
         data = data_flat.reshape((nx, ny, nz), order='F')
@@ -426,34 +429,36 @@ def readVTK(filename: str):
     return data, config
 
 
-def saveFrame(c_device: torch.Tensor, t: int, freq, config: dict, path="output/", filename="time"):
+def saveFrame(c_device: torch.Tensor, t: int, save_every, config: dict, path="output/", filename="time"):
     """
     Save a frame to a VTK file.
 
     :param c_device: torch.Tensor, the composition field
     :param t: Any, the time step
-    :param freq: int or list[int], the frequency to save the frame
+    :param save_every: int or list[int], save frequency
     :param config: dict, the configuration parameters
     :param path: str, the path to save the file
 
     :return: None
     """
-
-    if isinstance(freq, list):
-        if t == freq[0]:
-            freq.pop(0)
-            c = c_device.cpu()
-            mass = evalTotalMass(c, config["dX"], config["dX"], config["dX"])
-            print(f"Total mass at time {t}: {mass:.6f}")
-            writeVTK(c, t, config, path=path, filename=filename)
-            print(f"Frame {t} written in time_{t:06}.vtk.")
+    if isinstance(save_every, list):
+        if t == 0:
+            pass
+        elif t == save_every[0]:
+            save_every.pop(0)
+            pass
+        else:
+            return
+    elif t % save_every == 0:
+        pass
     else:
-        if t % freq == 0:
-            c = c_device.cpu()
-            mass = evalTotalMass(c, config["dX"], config["dX"], config["dX"])
-            print(f"Total mass at time {t}: {mass:.6f}")
-            writeVTK(c, t, config, path=path, filename=filename)
-            print(f"Frame {t} written in time_{t:06}.vtk.")
+        return
+    
+    c = c_device.cpu()
+    mass = evalTotalMass(c)
+    print(f"Total mass at time {t}: {mass:.6f}")
+    writeVTK(c, t, config, path=path, filename=filename)
+    print(f"Frame {t} written in {path}{filename}_{t:06}.vtk.")
 
 
 def plotComp(c: torch.Tensor):
@@ -467,7 +472,7 @@ def plotComp(c: torch.Tensor):
     return
 
 
-def evalTotalMass(c_device: torch.Tensor, dx: float, dy: float, dz: float):
+def evalTotalMass(c_device: torch.Tensor):
     """
     Evaluate the mass of the composition field.
 
@@ -478,11 +483,12 @@ def evalTotalMass(c_device: torch.Tensor, dx: float, dy: float, dz: float):
 
     :return: float, the mass of the composition field
     """
-    
-    return (torch.sum(c_device)*dx*dy*dz).item()
+    shape = c_device.shape
+    N = shape[0]*shape[1]*shape[2]
+    return (torch.sum(c_device)/N).item()
 
 
-def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz, dx, dy, dz):
+def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz):
     """
     Evaluate the total energy of the composition field.
 
@@ -492,6 +498,9 @@ def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz, dx, dy, dz):
     """
     # evaluate the bulk free energy (double well potential)
     f_0 = A*c_device*c_device*(1.0 - c_device)*(1.0 - c_device)
+
+    c_device_fft.copy_(c_device)
+    torch.fft.fftn(c_device_fft, out=c_device_fft)
 
     # compute the gradient of the composition field
     grad_c_1 = torch.fft.ifftn(1j*kx*c_device_fft, dim=(0, 1, 2)).real
@@ -506,7 +515,7 @@ def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz, dx, dy, dz):
     f_int = kappa/2*grad_c_squared
 
     # compute the total energy
-    total_energy = (torch.sum(f_0 + f_int)*dx*dy*dz).item()
+    total_energy = (torch.sum(f_0 + f_int)).item()
     
     return total_energy
 
