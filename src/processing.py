@@ -1,4 +1,6 @@
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 import gmsh
 import sys
@@ -54,6 +56,32 @@ class MyDevice:
         :return: None
         """
         self.empty_cache()
+
+
+class EdgeDetection(nn.Module):
+    def __init__(self):
+        super(EdgeDetection, self).__init__()
+        # Define a 3x3x3 kernel for the erosion operation
+        kernel = torch.ones((1, 1, 3, 3, 3), dtype=torch.float32)
+        self.register_buffer('kernel', kernel)
+
+    def forward(self, volume):
+        # Add batch and channel dimensions to the volume
+        volume = volume.unsqueeze(0).unsqueeze(0)  # Shape: (1, 1, nx, ny, nz)
+
+        # Apply 3D erosion using 3D convolution with the registered kernel
+        eroded_volume = F.conv3d(volume, self.kernel, padding=1)  # Ensure same size output
+        eroded_volume = ( eroded_volume == self.kernel.sum()).float()  # Binary eroded volume
+
+        # Subtract the eroded volume from the original volume to get the boundary
+        boundary = volume - eroded_volume
+
+        # Set the boundary values to 0.5
+        volume = volume.squeeze()  # Remove batch and channel dimensions
+        boundary = boundary.squeeze()  # Remove batch and channel dimensions
+        volume[boundary == 1.0] = 0.5
+
+        return volume
 
 
 def loadGeom(filename: str):
@@ -249,7 +277,6 @@ def _process_chunk(args, file):
         el_tag, _, _, _, _, _ = gmsh.model.mesh.getElementByCoordinates(x, y, z, dim=3)
         if el_tag in phys_ele:
             local_c[i - start_idx] = c_zero
-        #pbar.update()
 
     return local_c.numpy()
 
@@ -323,7 +350,9 @@ def writeVTK(data: torch.Tensor, t: int, config: dict, path="output/", filename=
 
     data = data.numpy()
     nx, ny, nz = data.shape
-    spacing = (1, 1, 1)
+    # spacing = (1, 1, 1)
+    lx, ly, lz = config["Lx"], config["Ly"], config["Lz"]
+    spacing = (config["dX"], config["dX"], config["dX"])
     origin = (0, 0, 0)
 
     filename = f"{path}{filename}_{t:06}.vtk"
@@ -380,13 +409,17 @@ def readVTK(filename: str):
                     try:
                         value = int(value)
                     except ValueError:
-                        value = float(value)
+                        try:
+                            value = float(value)
+                        except ValueError:
+                            pass
 
                     config[key] = value
             if "DIMENSIONS" in line:
                 nx = int(line.split()[1])
                 ny = int(line.split()[2])
                 nz = int(line.split()[3])
+
 
         # Read the binary data
         data_flat = np.fromfile(file, dtype='>f4').astype(np.float32)  # Big-endian double precision float -> np.float32
@@ -396,33 +429,36 @@ def readVTK(filename: str):
     return data, config
 
 
-def saveFrame(c_device: torch.Tensor, t: int, freq, config: dict, path="output/", filename="time"):
+def saveFrame(c_device: torch.Tensor, t: int, save_every, config: dict, path="output/", filename="time"):
     """
     Save a frame to a VTK file.
 
     :param c_device: torch.Tensor, the composition field
     :param t: Any, the time step
-    :param freq: int or list[int], the frequency to save the frame
+    :param save_every: int or list[int], save frequency
     :param config: dict, the configuration parameters
     :param path: str, the path to save the file
 
     :return: None
     """
-
-    if isinstance(freq, list):
-        if t in freq:
-            c = c_device.cpu()
-            mass = evalTotalMass(c, config["dX"], config["dX"], config["dX"])
-            print(f"Total mass at time {t}: {mass:.6f}")
-            writeVTK(c, t, config, path=path, filename=filename)
-            print(f"Frame {t} written in time_{t:06}.vtk.")
+    if isinstance(save_every, list):
+        if t == 0:
+            pass
+        elif t == save_every[0]:
+            save_every.pop(0)
+            pass
+        else:
+            return
+    elif t % save_every == 0:
+        pass
     else:
-        if t % freq == 0:
-            c = c_device.cpu()
-            mass = evalTotalMass(c, config["dX"], config["dX"], config["dX"])
-            print(f"Total mass at time {t}: {mass:.6f}")
-            writeVTK(c, t, config, path=path, filename=filename)
-            print(f"Frame {t} written in time_{t:06}.vtk.")
+        return
+    
+    c = c_device.cpu()
+    mass = evalTotalMass(c)
+    print(f"Total mass at time {t}: {mass:.6f}")
+    writeVTK(c, t, config, path=path, filename=filename)
+    print(f"Frame {t} written in {path}{filename}_{t:06}.vtk.")
 
 
 def plotComp(c: torch.Tensor):
@@ -436,7 +472,7 @@ def plotComp(c: torch.Tensor):
     return
 
 
-def evalTotalMass(c_device: torch.Tensor, dx: float, dy: float, dz: float):
+def evalTotalMass(c_device: torch.Tensor):
     """
     Evaluate the mass of the composition field.
 
@@ -447,11 +483,12 @@ def evalTotalMass(c_device: torch.Tensor, dx: float, dy: float, dz: float):
 
     :return: float, the mass of the composition field
     """
-    
-    return (torch.sum(c_device.cpu())*dx*dy*dz).item()
+    shape = c_device.shape
+    N = shape[0]*shape[1]*shape[2]
+    return (torch.sum(c_device)/N).item()
 
 
-def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz, dx, dy, dz):
+def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz):
     """
     Evaluate the total energy of the composition field.
 
@@ -459,8 +496,11 @@ def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz, dx, dy, dz):
 
     :return: float, the total energy of the composition field
     """
-    # perform fft on the composition field
+    # evaluate the bulk free energy (double well potential)
     f_0 = A*c_device*c_device*(1.0 - c_device)*(1.0 - c_device)
+
+    c_device_fft.copy_(c_device)
+    torch.fft.fftn(c_device_fft, out=c_device_fft)
 
     # compute the gradient of the composition field
     grad_c_1 = torch.fft.ifftn(1j*kx*c_device_fft, dim=(0, 1, 2)).real
@@ -475,9 +515,8 @@ def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz, dx, dy, dz):
     f_int = kappa/2*grad_c_squared
 
     # compute the total energy
-    energy = torch.sum(f_0 + f_int)*dx*dy*dz
-    total_energy = energy.cpu().item()
-    del energy, f_0, grad_c_1, grad_c_2, grad_c_3, grad_c, grad_c_squared, f_int
+    total_energy = (torch.sum(f_0 + f_int)).item()
+    
     return total_energy
 
 

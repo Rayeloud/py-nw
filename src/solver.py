@@ -23,7 +23,9 @@ where:
 """
 
 import torch
-
+import numpy as np
+from tqdm import tqdm
+from processing import saveFrame
 
 def compute_g(out, c_device, A):
     """
@@ -41,7 +43,7 @@ def compute_g(out, c_device, A):
 
 def compute_vm(out, c_device, M):
     """
-    Compute the square root of the absolute value of the composition field
+    Compute the variable mobility M(c) = sqrt(|c-c^2|)
 
     :param out: torch.Tensor, the output tensor
     :param c_device: torch.Tensor, the composition field
@@ -49,9 +51,17 @@ def compute_vm(out, c_device, M):
     out.copy_(M*torch.sqrt(torch.abs(c_device - c_device*c_device)))
 
 
+def compute_g_bis(out, c_device, A):
+    out.copy_(-c_device + c_device*c_device*c_device)
+
+
+def compute_vm_bis(out, c_device, M):
+    out.copy_(1.0-c_device*c_device)
+
+
 def compute_r(out, c_device_fft, g_device_fft, kappa, k2):
     """
-    Compute the r=(g + 2 kappa k@k c) term in Fourier space (kappa = kappa/2 here)
+    Compute the r=(g + kappa k@k c) term in Fourier space
 
     :param out: torch.Tensor, the output tensor
     :param c_device_fft: torch.Tensor, the composition field in Fourier space
@@ -59,11 +69,11 @@ def compute_r(out, c_device_fft, g_device_fft, kappa, k2):
     :param kappa: float, the interfacial free energy
     :param k2: float, the wave vector squared
     """
-    factor = kappa * k2
     # r_real = g_device_fft.real + factor * c_device_fft.real
     # r_complex = g_device_fft.imag + factor * c_device_fft.imag
-    out.real.copy_(g_device_fft.real + factor * c_device_fft.real)
-    out.imag.copy_(g_device_fft.imag + factor * c_device_fft.imag)
+    # out.real.copy_(g_device_fft.real + factor * c_device_fft.real)
+    # out.imag.copy_(g_device_fft.imag + factor * c_device_fft.imag)
+    out.copy_(g_device_fft + kappa * k2*c_device_fft)
 
 
 def compute_y(out, r_device_fft, kx, ky, kz):
@@ -76,31 +86,25 @@ def compute_y(out, r_device_fft, kx, ky, kz):
     :param ky: torch.Tensor, the wave vector in y direction
     :param kz: torch.Tensor, the wave vector in z direction
     """
-    r_real = r_device_fft.real
-    r_imag = r_device_fft.imag
+    # r_real = r_device_fft.real
+    # r_imag = r_device_fft.imag
 
-    # y1_real = - kx * r_imag
-    # y1_imag = kx * r_real
-    # y2_real = - ky * r_imag
-    # y2_imag = ky * r_real
-    # y3_real = - kz * r_imag
-    # y3_imag = kz * r_real
+    # out[0].real.copy_(- kx * r_imag)
+    # out[0].imag.copy_(kx * r_real)
+    # out[1].real.copy_(- ky * r_imag)
+    # out[1].imag.copy_(ky * r_real)
+    # out[2].real.copy_(- kz * r_imag)
+    # out[2].imag.copy_(kz * r_real)
 
-    # out[0].copy_(torch.complex(y1_real, y1_imag))
-    # out[1].copy_(torch.complex(y2_real, y2_imag))
-    # out[2].copy_(torch.complex(y3_real, y3_imag))
+    out[0].copy_(torch.fft.ifftn(1j*kx*r_device_fft, dim=(0, 1, 2)))
+    out[1].copy_(torch.fft.ifftn(1j*ky*r_device_fft, dim=(0, 1, 2)))
+    out[2].copy_(torch.fft.ifftn(1j*kz*r_device_fft, dim=(0, 1, 2)))
 
-    out[0].real.copy_(- kx * r_imag)
-    out[0].imag.copy_(kx * r_real)
-    out[1].real.copy_(- ky * r_imag)
-    out[1].imag.copy_(ky * r_real)
-    out[2].real.copy_(- kz * r_imag)
-    out[2].imag.copy_(kz * r_real)
 
 
 def compute_q(out, y1_device, y2_device, y3_device, phi_device):
     """
-    Compute the factor in real space: VM(c) * y_real where y_real = [j k (r)]_r
+    Compute the factor in real space: VM(c) * y_real where y_real = [jk * (r)]_r
 
     :param out: torch.Tensor, the output tensor
     :param y1_device: torch.Tensor, the y1 term in real space
@@ -109,15 +113,15 @@ def compute_q(out, y1_device, y2_device, y3_device, phi_device):
     :param phi_device: torch.Tensor, the VM(c) term in real space
     :param M: torch.Tensor, the VM(c) term in real space
     """
-    # to take into account the bulk mobility contribution
-    # (if M=0, then the mobility is constant and equal to 1)
-    #factor = phi_device # + (1.0 - np.ceil(M))
-    out[0].copy_(phi_device*y1_device)
-    out[1].copy_(phi_device*y2_device)
-    out[2].copy_(phi_device*y3_device)
+    # out[0].copy_(phi_device*y1_device)
+    # out[1].copy_(phi_device*y2_device)
+    # out[2].copy_(phi_device*y3_device)
+    torch.fft.fftn(phi_device*y1_device, dim=(0, 1, 2), out=out[0])
+    torch.fft.fftn(phi_device*y2_device, dim=(0, 1, 2), out=out[1])
+    torch.fft.fftn(phi_device*y3_device, dim=(0, 1, 2), out=out[2])
 
 
-def solve_ch(out, q1_device_fft, q2_device_fft, q3_device_fft, kx, ky, kz, k4, kappa, alpha, dt):
+def compute_euler_timestep(out, q1_device_fft, q2_device_fft, q3_device_fft, kx, ky, kz, k4, kappa, alpha, dt):
     """
     Solve the Cahn-Hilliard equation in Fourier space
 
@@ -134,9 +138,125 @@ def solve_ch(out, q1_device_fft, q2_device_fft, q3_device_fft, kx, ky, kz, k4, k
     :param dt: float, the time step
     """
     denominator = 1.0 + alpha * dt * kappa * k4
-    out.real.add_(-dt*(kx*q1_device_fft.imag +
-                       ky*q2_device_fft.imag +
-                       kz*q3_device_fft.imag).div_(denominator))
-    out.imag.add_(dt*(kx*q1_device_fft.real +
-                      ky*q2_device_fft.real +
-                      kz*q3_device_fft.real).div_(denominator))
+    # out.real.add_(-dt*(kx*q1_device_fft.imag +
+    #                    ky*q2_device_fft.imag +
+    #                    kz*q3_device_fft.imag).div_(denominator))
+    # out.imag.add_(dt*(kx*q1_device_fft.real +
+    #                   ky*q2_device_fft.real +
+    #                   kz*q3_device_fft.real).div_(denominator))
+    out.add_(dt*1j*(kx*q1_device_fft+ky*q2_device_fft+kz*q3_device_fft).div_(denominator))
+    
+
+@torch.no_grad
+def solve_cahn_hilliard(c, config, T, param, mode, path, filename):
+    device = (
+    "cuda"
+    if torch.cuda.is_available()
+    else "mps"
+    if torch.backends.mps.is_available()
+    else "cpu"
+    )
+
+    dx, dy, dz = config["dX"], config["dX"], config["dX"]
+    save_every, dt = param['save_every'], param['dt']
+
+    t_start, t_end = T
+    n_steps = int((t_end-t_start)/dt)
+
+    # define fourier space
+    kx = torch.fft.fftfreq(c.shape[0], d=dx) * 2.0 * np.pi
+    ky = torch.fft.fftfreq(c.shape[1], d=dy) * 2.0 * np.pi
+    kz = torch.fft.fftfreq(c.shape[2], d=dz) * 2.0 * np.pi
+
+    kx_mesh, ky_mesh, kz_mesh = torch.meshgrid(kx, ky, kz, indexing='ij')
+
+    k2 = kx_mesh**2 + ky_mesh**2 + kz_mesh**2
+    k4 = k2*k2
+    # init auxilary tensors
+    # bring to device
+    kx_mesh = kx_mesh.to(device=device)
+    ky_mesh = ky_mesh.to(device=device)
+    kz_mesh = kz_mesh.to(device=device)
+
+    k2 = k2.to(device=device)
+    k4 = k4.to(device=device)
+
+    c_device = c.to(device=device)
+
+    # preallocate tensors in device before the loop
+    torch.set_default_device(device=device)
+
+   # real space
+    g_device = torch.zeros_like(c_device)
+    phi_device = torch.zeros_like(c_device)
+    y1_device = torch.zeros_like(c_device)
+    y2_device = torch.zeros_like(c_device)
+    y3_device = torch.zeros_like(c_device)
+
+    # fourier space
+    c_device_fft = torch.zeros_like(c_device, dtype=torch.complex64)
+    g_device_fft = torch.zeros_like(c_device, dtype=torch.complex64)
+    r_device_fft = torch.zeros_like(c_device, dtype=torch.complex64)
+    q1_device_fft = torch.zeros_like(c_device, dtype=torch.complex64)
+    q2_device_fft = torch.zeros_like(c_device, dtype=torch.complex64)
+    q3_device_fft = torch.zeros_like(c_device, dtype=torch.complex64)
+    rhs_device_fft = torch.zeros_like(c_device, dtype=torch.complex64)
+    
+    # start loop
+    for t in tqdm(range(t_start+1, t_start+n_steps+1), desc=f'Solving...'):
+        # time stepping function (either semi-implicit euler or RK4)
+        compute_timestep(c_device, c_device_fft, g_device, g_device_fft, phi_device, r_device_fft, 
+                y1_device, y2_device, y3_device, q1_device_fft, q2_device_fft, q3_device_fft, rhs_device_fft, 
+                kx_mesh, ky_mesh, kz_mesh, k2, k4, param, out=c_device_fft, mode=mode)
+        
+        c_device.copy_(torch.fft.ifftn(c_device_fft, dim=(0, 1, 2), out=c_device_fft))
+        saveFrame(c_device, t, save_every, config, path=path, filename=filename)
+    
+    return
+
+def compute_timestep(c_device, c_device_fft, g_device, g_device_fft, phi_device, r_device_fft, 
+                y1_device, y2_device, y3_device, q1_device_fft, q2_device_fft, q3_device_fft, rhs_device_fft, 
+                kx, ky, kz, k2, k4, param, out, mode='Euler'):
+    if mode=='Euler':
+        alpha, kappa, dt = param['alpha'], param['kappa'], param['dt']
+        denominator = 1 + alpha * dt * kappa * k4
+        compute_rhs(rhs_device_fft, c_device, c_device_fft, g_device, g_device_fft, phi_device, r_device_fft, 
+                y1_device, y2_device, y3_device, q1_device_fft, q2_device_fft, q3_device_fft, kx, ky, kz, k2, param)
+        out.copy_(c_device_fft + dt*rhs_device_fft.div_(denominator))
+    elif mode=='RK4':
+        alpha, kappa, dt = param['alpha'], param['kappa'], param['dt']
+        compute_rhs(rhs_device_fft, c_device, c_device_fft, g_device, g_device_fft, phi_device, r_device_fft, 
+                y1_device, y2_device, y3_device, q1_device_fft, q2_device_fft, q3_device_fft, kx, ky, kz, k2, param)
+        c_1_fft = c_device_fft + dt * rhs_device_fft
+        c_1 = torch.fft.ifftn(c_1_fft, dim=(0, 1, 2))
+        compute_rhs(rhs_device_fft, c_1, c_1_fft, g_device, g_device_fft, phi_device, r_device_fft, 
+                y1_device, y2_device, y3_device, q1_device_fft, q2_device_fft, q3_device_fft, kx, ky, kz, k2, param)
+        c_2_fft = 3/4*c_device_fft + 1/4*c_1_fft + dt/4*rhs_device_fft
+        c_2 = torch.fft.ifftn(c_2_fft, dim=(0, 1, 2))
+        compute_rhs(rhs_device_fft, c_2, c_2_fft, g_device, g_device_fft, phi_device, r_device_fft, 
+                y1_device, y2_device, y3_device, q1_device_fft, q2_device_fft, q3_device_fft, kx, ky, kz, k2, param)
+        out.copy_(1/3*c_device_fft+2/3*c_2_fft+2*dt/3*rhs_device_fft)
+
+def compute_rhs(out, c_device, c_device_fft, g_device, g_device_fft, phi_device, r_device_fft, 
+                y1_device, y2_device, y3_device, q1_device_fft, q2_device_fft, q3_device_fft, kx, ky, kz, k2, param):
+    M, A, kappa  = param['M'], param['A'], param['kappa']
+    compute_vm(phi_device, c_device, M)
+
+    compute_g(g_device, c_device, A)
+
+    g_device_fft.copy_(g_device)
+    c_device_fft.copy_(c_device)
+
+    torch.fft.fftn(g_device_fft, dim=(0, 1, 2), out=g_device_fft)
+    torch.fft.fftn(c_device_fft, dim=(0, 1, 2), out=c_device_fft)
+
+    # compute r
+    compute_r(r_device_fft, c_device_fft, g_device_fft, kappa, k2)
+
+    # compute y
+    compute_y((y1_device, y2_device, y3_device), r_device_fft, kx, ky, kz)
+
+    # compute q
+    compute_q((q1_device_fft, q2_device_fft, q3_device_fft), y1_device, y2_device, y3_device, phi_device)
+
+    out.copy_(1j*(kx*q1_device_fft + ky*q2_device_fft + kz*q3_device_fft))

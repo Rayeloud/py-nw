@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# gmsh
+.db
+.msh
+
 # VS Code
 .vscode/
 
