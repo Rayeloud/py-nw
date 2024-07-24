@@ -335,6 +335,29 @@ def makeCompositionFieldParallel(meshgrid_size: "tuple[int, int, int]", geom_dim
     return c, coords.view((nx, ny, nz, 3))
 
 
+def makeIndicatorFunction(Lx, Ly, Lz, dx, dy, dz, substrate_dim, type="circular"):
+    # define indicator function
+    x1 = Lx//2
+    y1 = Ly//2
+    z1 = Lz//2
+    _x = torch.arange(start=0.0, end=Lx, step=dx)
+    _y = torch.arange(start=0.0, end=Ly, step=dy)
+    _z = torch.arange(start=0.0, end=Lz, step=dz)
+    h = 2
+    tanh_inv = np.arctanh(0.9)
+    eps = dx*h/(4*np.sqrt(2)*tanh_inv)
+
+    xx, yy, zz = torch.meshgrid(_x, _y, _z, indexing='ij')
+    if type == "planar":
+        indicator = 1/2 * (1+torch.tanh((Ly-Ly//2-substrate_dim-yy)/(eps)))
+    elif type == "circular":
+        indicator = 1/2 * (1+torch.tanh(-(substrate_dim-torch.sqrt((xx-x1)**2+(yy-y1)**2+(zz-z1)**2))/(eps)))
+    else :
+        raise ValueError("Invalid type of indicator function. Choose between 'planar' and 'circular'.")
+
+    return indicator
+
+
 def writeVTK(data: torch.Tensor, t: int, config: dict, path="output/", filename="time"):
     """
     Write the data to a VTK file.
@@ -429,7 +452,7 @@ def readVTK(filename: str):
     return data, config
 
 
-def saveFrame(c_device: torch.Tensor, t: int, save_every, config: dict, path="output/", filename="time"):
+def saveFrame(c_device: torch.Tensor, t: int, save_every, config: dict, dt: float, path="output/", filename="time"):
     """
     Save a frame to a VTK file.
 
@@ -488,7 +511,7 @@ def evalTotalMass(c_device: torch.Tensor):
     return (torch.sum(c_device)/N).item()
 
 
-def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz):
+def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz, dx):
     """
     Evaluate the total energy of the composition field.
 
@@ -499,8 +522,7 @@ def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz):
     # evaluate the bulk free energy (double well potential)
     f_0 = A*c_device*c_device*(1.0 - c_device)*(1.0 - c_device)
 
-    c_device_fft.copy_(c_device)
-    torch.fft.fftn(c_device_fft, out=c_device_fft)
+    torch.fft.rfftn(c_device, out=c_device_fft, dim=(0, 1, 2))
 
     # compute the gradient of the composition field
     grad_c_1 = torch.fft.ifftn(1j*kx*c_device_fft, dim=(0, 1, 2)).real
@@ -514,8 +536,10 @@ def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz):
     # compute the interfacial energy
     f_int = kappa/2*grad_c_squared
 
+
+    N = c_device.shape[0]*c_device.shape[1]*c_device.shape[2]
     # compute the total energy
-    total_energy = (torch.sum(f_0 + f_int)).item()
+    total_energy = (torch.sum(f_0 + f_int)).item()/N
     
     return total_energy
 
