@@ -9,53 +9,7 @@ import time
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from multiprocessing import Pool
-
-
-class MyDevice:
-    """
-    A class used to represent a Device.
-
-    :param cpu: bool, optional, if True, the device will be set to CPU, defaults to False
-    """
-
-    device_name = ""
-    sync_method = None
-
-    def __init__(self, cpu=False):
-        if cpu:
-            self.device_name = "cpu"
-            self.sync_method = lambda: None
-            self.empty_cache = lambda: None
-        else:
-            if torch.cuda.is_available():
-                self.device_name = "cuda"
-                self.sync_method = lambda: torch.cuda.synchronize()
-                self.empty_cache = lambda: torch.cuda.empty_cache()
-            elif torch.backends.mps.is_available():
-                self.device_name = "mps"
-                self.sync_method = lambda: torch.mps.synchronize()
-                self.empty_cache = lambda: torch.mps.empty_cache()
-            else:
-                # raise warning in console
-                print("Warning: neither cuda nor mps are available, using cpu instead...")
-                self.device_name = "cpu"
-                self.sync_method = lambda: None
-
-    def synchronize(self):
-        """
-        Synchronize the device.
-
-        :return: None
-        """
-        self.sync_method()
-
-    def empty_cache(self):
-        """
-        Empty the cache of the device.
-
-        :return: None
-        """
-        self.empty_cache()
+from functools import lru_cache
 
 
 class EdgeDetection(nn.Module):
@@ -121,6 +75,7 @@ def loadGeom(filename: str):
     config["Ly"] = gmsh.onelab.getNumber("Parameters/Ly")[0]
     config["Lz"] = gmsh.onelab.getNumber("Parameters/Lz")[0]
 
+    config["type"] = f'nanowire'
     config["nb_nw"] = int(gmsh.onelab.getNumber("Parameters/Nanowire number")[0]) + 1
     config["angle"] = gmsh.onelab.getNumber("Parameters/angle")[0]
 
@@ -157,9 +112,11 @@ def sortByCoords(tensor: torch.Tensor, coords: torch.Tensor):
         x_slice = coords_flatten[i*Ny*Nz:(i+1)*Ny*Nz]
         idx_slice = indices[i*Ny*Nz:(i+1)*Ny*Nz]
         tensor_slice = tensor_flatten[i*Ny*Nz:(i+1)*Ny*Nz]
+
         # sort the slice
         y = x_slice[:, 1]
         y, indices_y = torch.sort(y)
+
         # apply the same permutation to the other arrays
         x_slice = x_slice[indices_y]
         idx_slice = idx_slice[indices_y]
@@ -169,17 +126,21 @@ def sortByCoords(tensor: torch.Tensor, coords: torch.Tensor):
             y_slice = x_slice[j*Nz:(j+1)*Nz]
             idx_slice_2 = idx_slice[j*Nz:(j+1)*Nz]
             tensor_slice_2 = tensor_slice[j*Nz:(j+1)*Nz]
+
             # sort the slice
             z = y_slice[:, 2]
             z, indices_z = torch.sort(z)
+
             # apply the same permutation to the other arrays
             y_slice = y_slice[indices_z]
             idx_slice_2 = idx_slice_2[indices_z]
             tensor_slice_2 = tensor_slice_2[indices_z]
+
             # update the slice
             x_slice[j*Nz:(j+1)*Nz] = y_slice
             idx_slice[j*Nz:(j+1)*Nz] = idx_slice_2
             tensor_slice[j*Nz:(j+1)*Nz] = tensor_slice_2
+
         # update the slice
         coords_flatten[i*Ny*Nz:(i+1)*Ny*Nz] = x_slice
         indices[i*Ny*Nz:(i+1)*Ny*Nz] = idx_slice
@@ -267,18 +228,27 @@ def makeCompositionField(meshgrid_size: "tuple[int, int, int]", geom_dim: "tuple
 def _process_chunk(args, file):
     start_idx, end_idx, coords, phys_ele, c_zero, idx = args
     print(f"Thread {idx} processing chunk {idx}...")
+
+    # each thread initialize instance of gmsh, reads the geometry file and mesh it
     loadGeom(file)
+
+    test_tag = lru_cache(lambda el_tag : _tag_in_phys_group(el_tag, phys_ele))
 
     local_c = torch.zeros(end_idx - start_idx, dtype=torch.float32)
     chunck_size = end_idx - start_idx
-    #with tqdm(total=chunck_size, desc=f"Thread {idx}", position=idx, leave=True) as pbar:
     for i in range(start_idx, end_idx):
         x, y, z = coords[i]
-        el_tag, _, _, _, _, _ = gmsh.model.mesh.getElementByCoordinates(x, y, z, dim=3)
-        if el_tag in phys_ele:
+        el_tag, _, _, _, _, _ = gmsh.model.mesh.getElementByCoordinates(x, y, z, dim=3, strict=False)
+        if test_tag(el_tag):
             local_c[i - start_idx] = c_zero
 
     return local_c.numpy()
+
+def _tag_in_phys_group(el_tag, phys_ele):
+    if el_tag in phys_ele:
+        return True
+    else:
+        return False
 
 
 def makeCompositionFieldParallel(meshgrid_size: "tuple[int, int, int]", geom_dim: "tuple[int, int, int]", c_zero: float, file: str, num_workers=8):
@@ -340,18 +310,22 @@ def makeIndicatorFunction(Lx, Ly, Lz, dx, dy, dz, substrate_dim, type="circular"
     x1 = Lx//2
     y1 = Ly//2
     z1 = Lz//2
-    _x = torch.arange(start=0.0, end=Lx, step=dx)
-    _y = torch.arange(start=0.0, end=Ly, step=dy)
-    _z = torch.arange(start=0.0, end=Lz, step=dz)
-    h = 2
+    
+    nx, ny, nz = int(Lx//dx), int(Ly//dy), int(Lz//dz)
+
+    _x = torch.linspace(start=0.0, end=Lx, steps=nx)
+    _y = torch.linspace(start=0.0, end=Ly, steps=ny)
+    _z = torch.linspace(start=0.0, end=Lz, steps=nz)
+
+    h = 40
     tanh_inv = np.arctanh(0.9)
     eps = dx*h/(4*np.sqrt(2)*tanh_inv)
 
     xx, yy, zz = torch.meshgrid(_x, _y, _z, indexing='ij')
     if type == "planar":
-        indicator = 1/2 * (1+torch.tanh((Ly-Ly//2-substrate_dim-yy)/(eps)))
+        indicator = 1/2 * (1 + torch.tanh((Ly-Ly//2-substrate_dim-yy)/(eps)))
     elif type == "circular":
-        indicator = 1/2 * (1+torch.tanh(-(substrate_dim-torch.sqrt((xx-x1)**2+(yy-y1)**2+(zz-z1)**2))/(eps)))
+        indicator = 1/2 * (1 + torch.tanh(-(substrate_dim-torch.sqrt((xx-x1)**2+(yy-y1)**2+(zz-z1)**2))/(eps)))
     else :
         raise ValueError("Invalid type of indicator function. Choose between 'planar' and 'circular'.")
 
@@ -443,7 +417,6 @@ def readVTK(filename: str):
                 ny = int(line.split()[2])
                 nz = int(line.split()[3])
 
-
         # Read the binary data
         data_flat = np.fromfile(file, dtype='>f4').astype(np.float32)  # Big-endian double precision float -> np.float32
         data = data_flat.reshape((nx, ny, nz), order='F')
@@ -511,7 +484,7 @@ def evalTotalMass(c_device: torch.Tensor):
     return (torch.sum(c_device)/N).item()
 
 
-def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz, dx):
+def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz, dx, filter=None, c0_device=None, grad_c0_norm_device=None):
     """
     Evaluate the total energy of the composition field.
 
@@ -520,29 +493,73 @@ def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz, dx):
     :return: float, the total energy of the composition field
     """
     # evaluate the bulk free energy (double well potential)
-    f_0 = A*c_device*c_device*(1.0 - c_device)*(1.0 - c_device)
+    # f_0 = A*c_device*c_device*(1.0 - c_device)*(1.0 - c_device)
 
-    torch.fft.rfftn(c_device, out=c_device_fft, dim=(0, 1, 2))
+    # torch.fft.rfftn(c_device, out=c_device_fft, dim=(0, 1, 2))
 
-    # compute the gradient of the composition field
+    # # compute the gradient of the composition field
+    # grad_c_1 = torch.fft.ifftn(1j*kx*c_device_fft, dim=(0, 1, 2)).real
+    # grad_c_2 = torch.fft.ifftn(1j*ky*c_device_fft, dim=(0, 1, 2)).real
+    # grad_c_3 = torch.fft.ifftn(1j*kz*c_device_fft, dim=(0, 1, 2)).real
+
+    # # compute square of the gradient magnitude
+    # grad_c = torch.sqrt(grad_c_1**2 + grad_c_2**2 + grad_c_3**2)
+    # grad_c_squared = grad_c**2 
+
+    # # compute the interfacial energy
+    # f_int = kappa/2*grad_c_squared
+
+
+    # N = c_device.shape[0]*c_device.shape[1]*c_device.shape[2]
+    # # compute the total energy
+    # total_energy = (torch.sum(f_0 + f_int)).item()/N
+    #f_0_0 = A*c0_device*c0_device*(1.0 - c0_device)*(1.0 - c0_device) if c0_device is not None else 0.0
+    f_0_1 = A*c_device*c_device*(1.0 - c_device)*(1.0 - c_device)
+    f_0_2 = A*(1-c_device-c0_device)*(1-c_device-c0_device)*(c_device+c0_device)*(c_device+c0_device) if c0_device is not None else 0.0
+    #f_0 = f_0_0 + f_0_1 + f_0_2
+    f_0 = f_0_1 + f_0_2
+
+    compute_fftn(c_device, out=c_device_fft, filter=filter)
+    c2_device_fft = compute_fftn(1-c_device-c0_device, filter=filter) if c0_device is not None else None
+
     grad_c_1 = torch.fft.ifftn(1j*kx*c_device_fft, dim=(0, 1, 2)).real
     grad_c_2 = torch.fft.ifftn(1j*ky*c_device_fft, dim=(0, 1, 2)).real
     grad_c_3 = torch.fft.ifftn(1j*kz*c_device_fft, dim=(0, 1, 2)).real
 
-    # compute square of the gradient magnitude
-    grad_c = torch.sqrt(grad_c_1**2 + grad_c_2**2 + grad_c_3**2)
-    grad_c_squared = grad_c**2 
+    grad_c2_1 = torch.fft.ifftn(1j*kx*c2_device_fft, dim=(0, 1, 2)).real if c0_device is not None else None
+    grad_c2_2 = torch.fft.ifftn(1j*ky*c2_device_fft, dim=(0, 1, 2)).real if c0_device is not None else None
+    grad_c2_3 = torch.fft.ifftn(1j*kz*c2_device_fft, dim=(0, 1, 2)).real if c0_device is not None else None
+    
+    grad_c_sq = grad_c_1**2 + grad_c_2**2 + grad_c_3**2
+    grad_c2_sq = grad_c2_1**2 + grad_c2_2**2 + grad_c2_3**2 if c0_device is not None else 0.0
 
-    # compute the interfacial energy
-    f_int = kappa/2*grad_c_squared
+    #f_int_0 = kappa/2 * grad_c0_norm_device * grad_c0_norm_device if c0_device is not None else 0.0
+    f_int_1 = kappa/2 * grad_c_sq
+    f_int_2 = kappa/2 * grad_c2_sq
 
+    #f_int = f_int_0 + f_int_1 + f_int_2
+    f_int = f_int_1 + f_int_2
 
     N = c_device.shape[0]*c_device.shape[1]*c_device.shape[2]
-    # compute the total energy
     total_energy = (torch.sum(f_0 + f_int)).item()/N
     
     return total_energy
 
+
+def compute_fftn(input, out=None, filter=None):
+    if out is None:
+        out = torch.fft.rfftn(input, dim=(0, 1, 2))
+        out.mul_(filter) if filter is not None else None
+        return out
+    else:
+        torch.fft.rfftn(input, out=out, dim=(0, 1, 2))
+        out.mul_(filter) if filter is not None else None
+
+def compute_ifftn(input, out=None, size=None):
+    if out is None:
+        return torch.fft.irfftn(input, dim=(0, 1, 2), s=size)
+    else:
+        torch.fft.irfftn(input, s=out.size(), dim=(0, 1, 2), out=out)
 
 
 # deprecated

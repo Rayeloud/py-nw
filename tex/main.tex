@@ -1,0 +1,71 @@
+\documentclass[twoside, 12pt]{report}
+\setlength{\headheight}{14.49998pt}
+\addtolength{\topmargin}{-2.49998pt}
+
+%%%%%%%%%%%%
+% Packages %
+%%%%%%%%%%%%
+
+\usepackage[english]{babel}
+\usepackage{packages/sleek}
+\usepackage{packages/sleek-title}
+
+
+%%%%%%%%%%%%%%
+% Title-page %
+%%%%%%%%%%%%%%
+
+\logo{./resources/pdf/logo.pdf}
+\institute{University of Liège}
+\faculty{Faculty of Applied Sciences}
+\title{Numerical study of the morphological instability of metallic nanowires}
+%\subtitle{With a sleeker title-page}
+\author{\textit{Academic supervisor}\\Prof. Ngoc Duy \textsc{Nguyen}}
+\supervisor{\textit{Jury members}\\Prof. David \textsc{Collignon}\\Prof. Benoît \textsc{Vanderheyden}}
+\context{\Large Master's thesis conducted by Rayane \textsc{Eloudrhiri}\\in order to obtain the Master's degree in Engineering Physics}
+\date{Academic year 2023-2024}
+
+%%%%%%%%%%%%%%%%
+% Bibliography %
+%%%%%%%%%%%%%%%%
+
+\addbibresource{./resources/bib/references.bib}
+
+%%%%%%%%%%%%
+% Document %
+%%%%%%%%%%%%
+
+\begin{document}
+    \maketitle
+    \frontmatter{resources/chapters/__frontmatter.tex}
+    \addcontentsline{toc}{chapter}{Introduction}
+    \chapter*{Introduction}\label{chap:intro}
+    \markboth{\textsc{INTRODUCTION}}{}
+    \input{resources/chapters/0_introduction}
+    \chapter{State of the art}
+    \input{resources/chapters/1_sota}
+    \chapter{Methodology}
+    \input{resources/chapters/2_methodology}
+    \chapter{Results}
+    \input{resources/chapters/3_results}
+    \chapter{Morphological instability in a complex domain}
+    \input{resources/chapters/4_substrate}
+    %\chapter{Polycristalline structure}
+    %\input{resources/chapters/5_anisotropy}
+    \addcontentsline{toc}{chapter}{Conclusion and perspectives}
+    \chapter*{Conclusion and perspectives}\label{chap:concl}
+    \input{resources/chapters/9_conclusion}
+
+    
+    \newpage
+    \addtocontents{toc}{\protect\vspace{15pt}}
+    \addcontentsline{toc}{chapter}{\Large Appendix}
+    \appendix
+    \input{resources/chapters/__appendix}
+    
+    \newpage
+
+    %\nocite{*}
+    %\printbibliography
+
+\end{document}

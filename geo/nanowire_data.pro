@@ -11,5 +11,5 @@ offset = 0; // Offset from the center of the domain
 delta = 1.1; // Squashing number
 
 // Domain parameters
-Lx = 384/2; Ly = 48; Lz = 384/2; // L = N * dX
+Lx = 384; Ly = 48; Lz = 384; // L = N * dX
 dX = 0.5;

@@ -25,7 +25,8 @@ where:
 import torch
 import numpy as np
 from tqdm import tqdm
-from processing import saveFrame
+
+from processing import compute_fftn, compute_ifftn
 
 def compute_g(out, c_device, A):
     """
@@ -46,6 +47,8 @@ def compute_vm(out, c_device, M):
     :param c_device: torch.Tensor, the composition field
     """
     out.copy_(M*torch.sqrt(torch.abs(c_device-c_device*c_device)))
+    #out.copy_(8.0 * M * c_device * c_device * (1.0 - c_device) * (1.0 - c_device))
+    #out.copy_(2.0 * M * c_device * (1.0 - c_device))
 
 
 def compute_mu_fft(out, c_device_fft, g_device_fft, kappa, k2):
@@ -61,39 +64,22 @@ def compute_mu_fft(out, c_device_fft, g_device_fft, kappa, k2):
     out.copy_(g_device_fft + kappa * k2*c_device_fft)
 
 
-def compute_mu_fft_bis(out, c_device, c_device_fft, flux_c_device_fft, bc_device_fft, g_device_fft, grad_indic_device, grad_indic_norm_device, kappa, kx, ky, kz, k2, theta):
+def compute_mu_fft_bis(out, c_device, c_device_fft, 
+                       flux_c_device_fft, bc_device_fft, g_device_fft, 
+                       grad_indic_device, grad_indic_norm_device, low_pass_filter,
+                       kappa, jkx, jky, jkz, k2, theta):
     # contact angle=pi/2
-    eps = 1*0.5
+    grad_c1_device = torch.fft.ifftn(jkx*c_device_fft, dim=(0, 1, 2)).real
+    grad_c2_device = torch.fft.ifftn(jky*c_device_fft, dim=(0, 1, 2)).real
+    grad_c3_device = torch.fft.ifftn(jkz*c_device_fft, dim=(0, 1, 2)).real
 
-    grad_c1_device = torch.fft.ifftn(1j*kx*c_device_fft, dim=(0, 1, 2)).real
-    grad_c2_device = torch.fft.ifftn(1j*ky*c_device_fft, dim=(0, 1, 2)).real
-    grad_c3_device = torch.fft.ifftn(1j*kz*c_device_fft, dim=(0, 1, 2)).real
-
-    #grad_c_norm_device = torch.sqrt(grad_c1_device**2 + grad_c2_device**2 + grad_c3_device**2)
-
-    torch.fft.rfftn(grad_c1_device*grad_indic_device[0] + grad_c2_device*grad_indic_device[1] + grad_c3_device*grad_indic_device[2], out=flux_c_device_fft, dim=(0, 1, 2))
-    
-    torch.fft.rfftn(c_device*(1-c_device)/(np.sqrt(2)*eps) * grad_indic_norm_device * np.cos(theta), out=bc_device_fft, dim=(0, 1, 2))
-    
-    # bc_fft = torch.fft.fftn(grad_c_norm_device*grad_indic_norm_device, dim=(0, 1, 2))*np.cos(theta)
-    # v1 = torch.fft.ifftn(1j*kx*c_device_fft, dim=(0, 1, 2))
-    # v2 = torch.fft.ifftn(1j*ky*c_device_fft, dim=(0, 1, 2))
-    # v3 = torch.fft.ifftn(1j*kz*c_device_fft, dim=(0, 1, 2))
-
-    # u1 = torch.fft.fftn((1-indic_device)*v1, dim=(0, 1, 2))
-    # u2 = torch.fft.fftn((1-indic_device)*v2, dim=(0, 1, 2))
-    # u3 = torch.fft.fftn((1-indic_device)*v3, dim=(0, 1, 2))
-    # b = -kappa * 1j * (kx*u1 + ky*u2 + kz*u3)
-
-    # c = torch.fft.fftn(np.cos(theta)/np.sqrt(2) * kappa * \
-    #                    c_device*(c_device - 1) * \
-    #                    torch.sqrt(grad_indic_device[0]**2+grad_indic_device[1]**2+grad_indic_device[2]**2), dim=(0, 1, 2))
-    # out.copy_(g_device_fft + b + c)
+    compute_fftn(grad_c1_device*grad_indic_device[0] + grad_c2_device*grad_indic_device[1] + grad_c3_device*grad_indic_device[2], out=flux_c_device_fft, filter=low_pass_filter)
+    compute_fftn(c_device*(1-c_device)/(np.sqrt(2*kappa)) * grad_indic_norm_device * np.cos(theta), out=bc_device_fft, filter=low_pass_filter)
 
     out.copy_(g_device_fft + kappa * k2*c_device_fft + bc_device_fft + flux_c_device_fft)
 
 
-def compute_grad_mu(out, mu_device_fft, kx, ky, kz):
+def compute_grad_mu(out, mu_device_fft, jkx, jky, jkz):
     """
     Compute the j k (mu_hat) term in Fourier space (which will be brought back to real space)
     Gradient of the chemical potential in Fourier space
@@ -105,12 +91,15 @@ def compute_grad_mu(out, mu_device_fft, kx, ky, kz):
     :param kz: torch.Tensor, the wave vector in z direction
     """
 
-    out[0].copy_(torch.fft.ifftn(1j*kx*mu_device_fft, dim=(0, 1, 2)))
-    out[1].copy_(torch.fft.ifftn(1j*ky*mu_device_fft, dim=(0, 1, 2)))
-    out[2].copy_(torch.fft.ifftn(1j*kz*mu_device_fft, dim=(0, 1, 2)))
+    # out[0].copy_(torch.fft.ifftn(jkx*mu_device_fft, dim=(0, 1, 2)))
+    # out[1].copy_(torch.fft.ifftn(jky*mu_device_fft, dim=(0, 1, 2)))
+    # out[2].copy_(torch.fft.ifftn(jkz*mu_device_fft, dim=(0, 1, 2)))
+    compute_ifftn(jkx*mu_device_fft, out=out[0])
+    compute_ifftn(jky*mu_device_fft, out=out[1])
+    compute_ifftn(jkz*mu_device_fft, out=out[2])
 
 
-def compute_flux_fft(out, grad_mu1_device, grad_mu2_device, grad_mu3_device, phi_device):
+def compute_flux_fft(out, grad_mu1_device, grad_mu2_device, grad_mu3_device, phi_device, low_pass_filter=None):
     """
     Compute the factor in real space: VM(c) * grad mu where grad mu = [jk * mu_hat]_r
 
@@ -121,12 +110,15 @@ def compute_flux_fft(out, grad_mu1_device, grad_mu2_device, grad_mu3_device, phi
     :param phi_device: torch.Tensor, the VM(c) term in real space
     :param M: torch.Tensor, the VM(c) term in real space
     """
-    torch.fft.rfftn(phi_device*grad_mu1_device, dim=(0, 1, 2), out=out[0])
-    torch.fft.rfftn(phi_device*grad_mu2_device, dim=(0, 1, 2), out=out[1])
-    torch.fft.rfftn(phi_device*grad_mu3_device, dim=(0, 1, 2), out=out[2])
+    #torch.fft.rfftn(phi_device*grad_mu1_device, dim=(0, 1, 2), out=out[0])
+    #torch.fft.rfftn(phi_device*grad_mu2_device, dim=(0, 1, 2), out=out[1])
+    #torch.fft.rfftn(phi_device*grad_mu3_device, dim=(0, 1, 2), out=out[2])
+    compute_fftn(phi_device*grad_mu1_device, out=out[0], filter=low_pass_filter)
+    compute_fftn(phi_device*grad_mu2_device, out=out[1], filter=low_pass_filter)
+    compute_fftn(phi_device*grad_mu3_device, out=out[2], filter=low_pass_filter)
 
 
-def compute_euler_timestep(out, flux1_device_fft, flux2_device_fft, flux3_device_fft, kx, ky, kz, k4, kappa, alpha, dt):
+def compute_euler_timestep(out, flux1_device_fft, flux2_device_fft, flux3_device_fft, jkx, jky, jkz, k4, kappa, alpha, dt):
     """
     Solve the Cahn-Hilliard equation in Fourier space
 
@@ -143,9 +135,10 @@ def compute_euler_timestep(out, flux1_device_fft, flux2_device_fft, flux3_device
     :param dt: float, the time step
     """
     denominator = 1.0 + alpha * dt * kappa * k4
-    out.add_(dt*1j*(kx*flux1_device_fft+ky*flux2_device_fft+kz*flux3_device_fft).div_(denominator))
+    out.add_(dt*(jkx*flux1_device_fft+jky*flux2_device_fft+jkz*flux3_device_fft).div_(denominator))
     
 
+'''
 def compute_rhs(out, c_device, c_device_fft, g_device, g_device_fft, phi_device, 
                 mu_device_fft, grad_mu_device, flux_device_fft, k, k2, const):
     """
@@ -270,3 +263,4 @@ def solveCH(c, t_range, const, config,device):
     
 
     return
+'''

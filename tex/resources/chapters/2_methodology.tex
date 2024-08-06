@@ -1,0 +1,95 @@
+\section{Phase field modeling of a binary mixture}
+        \begin{itemize}
+            \item Definition of the conserved order parameters
+            \item Description of the physics in the free energy
+        \end{itemize}
+\section{Numerical method}
+    \subsection{Fourier spectral method}
+        \subsubsection{Solving PDEs}
+        \begin{itemize}
+            \item Strengths and weaknesses (i.e. easy to implement, easy to parallelize, PDE --> $\{\}$ of ODEs, Periodic boundary condition "only", regular mesh only)
+        \end{itemize}
+        \subsubsection{Application to Cahn-Hilliard}
+        \begin{itemize}
+            \item Express the Cahn-Hiliard equation in Fourier space
+            \item Rewrite to facilitate implementation
+        \end{itemize}
+    \subsection{Time marching scheme}
+        \subsubsection{Forward Euler Method}
+        \begin{itemize}
+            \item Recall on the method
+        \end{itemize}
+        \subsubsection{Von-Neumann Analysis}
+        \begin{itemize}
+            \item Relation between time discretisation and spatial discretisation
+            \item Highlight constraint
+        \end{itemize}
+        \subsubsection{Semi-implicit treatment}
+        \begin{itemize}
+            \item How to perform the semi-implicit treatment (cite Zhu et al.)
+            \item Why is it useful
+        \end{itemize}
+    \subsection{Implementation}
+        \subsubsection{}
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=0.5\linewidth]{resources/pdf/chap2/implementation.png}
+            \caption{Computation flowchart}
+            \label{fig:enter-label}
+        \end{figure}
+\section{Numerical experiments}
+    \subsection{Spinodal decomposition}
+        \subsubsection{Theoretical context}
+        \begin{itemize}
+            \item What is spinodal decomposition
+            \item Why phase field modeling
+        \end{itemize}
+        \subsubsection{Results}
+        \begin{itemize}
+            \item Comparison of model results with Zhu et al's
+            \item Model used as a benchmark to check solver consistency and stability
+        \end{itemize}
+    \subsection{Consistency and stability assessment}
+        Quantity to track: integral quantity --> total free energy
+        \subsubsection{Mesh refinement}
+        \begin{itemize}
+            \item Effect of the mesh refinement on the energy
+            \item Effect of the mesh refinement on the numerical solution (error maps)
+        \end{itemize}
+        \subsubsection{Stability assessment}
+        \begin{itemize}
+            \item Von Neumann analysis --> stability assessment
+            \item Integral quantity v.s. $dt$ with fixed mesh refinement
+            \item Stability condition
+        \end{itemize}
+\section{Nanowire morphological instability}
+    \subsection{Model description}
+        \subsubsection{Free standing nanowire}
+        \begin{itemize}
+            \item Nanowire model (from pentagonal base to circular base)
+            \item Physical domain
+        \end{itemize}
+        \subsubsection{Phase field definition}
+        \begin{itemize}
+            \item Description of the NW-Vacuum Binary mixture
+            \item Motivation for the description
+        \end{itemize}
+        \subsubsection{Discretisation}
+        \begin{itemize}
+            \item Regular mesh from the geometry --> Voxelisation
+        \end{itemize}
+    \subsection{Results}
+        Table with the physical parameters used for the results
+        \subsubsection{Single wire}
+        \begin{itemize}
+            \item $R^4$ v.s. $t_{bd}$
+            \item $\lambda = C \times R_0$ (Mc Callum / Plateau Rayleigh)
+            \item comparison with Roy et al.
+        \end{itemize}
+        \subsubsection{Junction}
+        \begin{itemize}
+            \item $\alpha$ v.s. $t_{bd}$
+            \item mean curvature v.s. $t$
+            \item comparison with Roy et al.
+        \end{itemize}
+    

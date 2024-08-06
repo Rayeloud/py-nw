@@ -13,13 +13,19 @@ _R_2 = DefineNumber(R_2/dX, Name "Parameters/r_2", Visible 0);
 
 SHAPE_FLAG = DefineNumber(SHAPE, Choices{
     0="Cylindrical",
-    1="Pentagonal",
-    2="Elliptical"}, 
+    1="Pentagonal"},
     Name "Parameters/Shape");
 
 NB_NW_PARAM = DefineNumber(NB_NW-1, Choices{
 0="1",
 1="2"}, Name "Parameters/Nanowire number");
+
+L = Lx;
+H = Ly;
+
+Lx = DefineNumber(Lx, Name "Parameters/Lx", ReadOnly READONLY);
+Ly = DefineNumber(Ly, Name "Parameters/Ly", ReadOnly READONLY);
+Lz = DefineNumber(Lz, Name "Parameters/Lz", ReadOnly READONLY);
 
 R1 = DefineNumber(R_1, Name "Parameters/Nanowire/NW_0/R");
 angle1 = 0;
@@ -30,16 +36,6 @@ angle_param = DefineNumber(angle, Name "Parameters/angle", Visible 0);
 
 N = DefineNumber(96, Name "Parameters/N");
 
-L = Lx;
-H = Ly;
-
-Lx = DefineNumber(Lx, Name "Parameters/Lx", ReadOnly READONLY);
-Ly = DefineNumber(Ly, Name "Parameters/Ly", ReadOnly READONLY);
-Lz = DefineNumber(Lz, Name "Parameters/Lz", ReadOnly READONLY);
-
-// Nx = DefineNumber(N*L/H, Name "Parameters/Nx", ReadOnly READONLY);
-// Ny = DefineNumber(N, Name "Parameters/Ny", ReadOnly READONLY);
-// Nz = DefineNumber(N*L/H, Name "Parameters/Nz", ReadOnly READONLY);
 Nx = DefineNumber(Lx/dX, Name "Parameters/Nx", ReadOnly READONLY);
 Ny = DefineNumber(Ly/dX, Name "Parameters/Ny", ReadOnly READONLY);
 Nz = DefineNumber(Lz/dX, Name "Parameters/Nz", ReadOnly READONLY);
@@ -98,28 +94,6 @@ If (SHAPE_FLAG == 1)
     }
 EndIf
 
-If (SHAPE_FLAG == 2)
-    a_0 = R1*delta;
-    b_0 = R1/delta;
-
-    center_x = Lx/2;
-    center_y = Ly/2 - offset;
-    Point(5) = {center_x, center_y, 0, 1.0};
-    Point(6) = {center_x, center_y - b_0, 0, 1.0}; Point(7) = {center_x, center_y + b_0, 0, 1.0};
-    Point(8) = {center_x - a_0, center_y, 0, 1.0}; Point(9) = {center_x + a_0, center_y, 0, 1.0};
-
-    Ellipse(5) = {7, 5, 9, 9}; Ellipse(6) = {6, 5, 9, 9};
-    Ellipse(7) = {6, 5, 8, 8}; Ellipse(8) = {7, 5, 8, 8};
-
-    // Define curve loops
-    Curve Loop(10) = {5, 6, 7, 8}; Plane Surface(11) = {10};
-    Curve Loop(12) = {1, 2, 3, 4}; Plane Surface(13) = {12, 10};
-
-    // Extrude domain and NW
-    Extrude {0, 0, L} {
-        Surface{13}; Surface{11};
-    }
-EndIf
 // Define second NW
 
 // rotation of the NW
@@ -182,6 +156,7 @@ If (NB_NW_PARAM == 1 && angle2 > 0)
         // Define curve loops
         Curve Loop(104) = {100, 101, 102, 103}; 
     EndIf
+
     If (SHAPE_FLAG == 1)
         theta = 2*Pi/5;
         theta_offset = Pi / 2 + theta; //offset to start from the top
@@ -204,25 +179,6 @@ If (NB_NW_PARAM == 1 && angle2 > 0)
         // Define curve loops
         Curve Loop(104) = {99, 100, 101, 102, 103};
     EndIf
-    
-    If (SHAPE_FLAG == 2)
-        a_1 = R2*delta;
-        b_1 = R2/delta;
-        y_offset = b_0 + b_1 + dist2;
-        Point(20) = {X, center_y + y_offset, Z, 1.0};
-        Point(21) = {X + a_1, center_y + y_offset, Z, 1.0}; Point(22) = {X - a_1, center_y + y_offset, Z, 1.0};
-        Point(23) = {X, center_y + y_offset + b_1, Z, 1.0}; Point(24) = {X, center_y + y_offset - b_1, Z, 1.0};
-        Rotate {{0, 1, 0}, {X, center_y + y_offset, Z}, angle2*Pi/180} {
-            Point{24}; Point{22}; Point{23}; Point{21};
-          }
-
-        // Define curves
-        Ellipse(100) = {23, 20, 21, 21}; Ellipse(101) = {24, 20, 21, 21};
-        Ellipse(102) = {23, 20, 22, 22}; Ellipse(103) = {24, 20, 22, 22};
-        
-        // Define curve loops
-        Curve Loop(104) = {100, 101, 102, 103}; 
-    EndIf
 
     Plane Surface(105) = {104};
 
@@ -240,7 +196,7 @@ If (NB_NW_PARAM == 1 && angle2 > 0)
     // Meshing
 
     // first NW
-    If (SHAPE_FLAG != 1)    
+    If (SHAPE_FLAG == 0)    
         Transfinite Curve {128, 131, 130, 129} = 10 Using Progression 1; Transfinite Curve {123, 126, 125, 124} = 10 Using Progression 1;
         Transfinite Curve {132, 135, 134, 133} = 1 Using Progression 1;
         
@@ -260,7 +216,8 @@ If (NB_NW_PARAM == 1 && angle2 > 0)
         Transfinite Curve {122, 116, 127, 119, 114, 112, 115, 113} = 5 Using Progression 1;
         // Vertical edges
         Transfinite Curve {120, 117, 118, 121} = 3 Using Progression 1;
-    Else
+    EndIf
+    If (SHAPE_FLAG == 1)
         // NW 1
         Transfinite Curve {133, 132, 131, 135, 134, 127, 128, 126, 125, 129} = 10 Using Progression 1;
         Transfinite Curve {139, 140, 138, 137, 136} = 1 Using Progression 1;
@@ -288,7 +245,7 @@ Else
     // Meshing
 
     // First NW (one NW config)
-    If (SHAPE_FLAG != 1)
+    If (SHAPE_FLAG == 0)
         Transfinite Curve {19, 21, 23, 24, 5, 6, 7, 8} = 15 Using Progression 1;
         Transfinite Curve {17, 22, 18, 20} = 1 Using Progression 1;
         Transfinite Surface {18}; Transfinite Surface {21}; Transfinite Surface {19}; Transfinite Surface {20};
@@ -300,7 +257,8 @@ Else
         Transfinite Curve {15, 11, 14, 9, 3, 1, 12, 10} = 5 Using Progression 1;
         // Vertical edges
         Transfinite Curve {4, 16, 2, 13} = 3 Using Progression 1;
-    Else
+    EndIf
+    If (SHAPE_FLAG == 1)
         Transfinite Curve {24, 22, 20, 27, 26, 7, 6, 5, 9, 8} = 10 Using Progression 1;
         Transfinite Curve {23, 21, 19, 18, 25} = 1 Using Progression 1;
         Transfinite Surface {20}; Transfinite Surface {19}; Transfinite Surface {18};
