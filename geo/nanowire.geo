@@ -20,9 +20,6 @@ NB_NW_PARAM = DefineNumber(NB_NW-1, Choices{
 0="1",
 1="2"}, Name "Parameters/Nanowire number");
 
-L = Lx;
-H = Ly;
-
 Lx = DefineNumber(Lx, Name "Parameters/Lx", ReadOnly READONLY);
 Ly = DefineNumber(Ly, Name "Parameters/Ly", ReadOnly READONLY);
 Lz = DefineNumber(Lz, Name "Parameters/Lz", ReadOnly READONLY);
@@ -41,8 +38,8 @@ Ny = DefineNumber(Ly/dX, Name "Parameters/Ny", ReadOnly READONLY);
 Nz = DefineNumber(Lz/dX, Name "Parameters/Nz", ReadOnly READONLY);
 
 // Define domain
-Point(1) = {0, 0, 0, 100.0}; Point(2) = {L, 0, 0, 100.0};
-Point(3) = {L, H, 0, 100.0}; Point(4) = {0, H, 0, 100.0};
+Point(1) = {0, 0, 0, 100.0}; Point(2) = {Lx, 0, 0, 100.0};
+Point(3) = {Lx, Ly, 0, 100.0}; Point(4) = {0, Ly, 0, 100.0};
 
 Line(1) = {1, 2}; Line(2) = {2, 3};
 Line(3) = {3, 4}; Line(4) = {4, 1};
@@ -63,7 +60,7 @@ If (SHAPE_FLAG == 0)
     Curve Loop(12) = {1, 2, 3, 4}; Plane Surface(13) = {12, 10};
 
     // Extrude domain and NW
-    Extrude {0, 0, L} {
+    Extrude {0, 0, Lz} {
         Surface{13}; Surface{11};
     }
 EndIf
@@ -89,7 +86,7 @@ If (SHAPE_FLAG == 1)
     Curve Loop(12) = {1, 2, 3, 4}; Plane Surface(13) = {12, 10};
 
     // Extrude domain and NW
-    Extrude {0, 0, L} {
+    Extrude {0, 0, Lz} {
         Surface{13}; Surface{11};
     }
 EndIf
@@ -196,26 +193,56 @@ If (NB_NW_PARAM == 1 && angle2 > 0)
     // Meshing
 
     // first NW
-    If (SHAPE_FLAG == 0)    
-        Transfinite Curve {128, 131, 130, 129} = 10 Using Progression 1; Transfinite Curve {123, 126, 125, 124} = 10 Using Progression 1;
-        Transfinite Curve {132, 135, 134, 133} = 1 Using Progression 1;
-        
-        Transfinite Surface {23}; Transfinite Surface {11};
-        Transfinite Surface {117}; Transfinite Surface {118}; Transfinite Surface {119}; Transfinite Surface {120};
-        Transfinite Volume{vol_ids[0]};
-        // second NW
-        Transfinite Curve {106, 111, 110, 108} = 10 Using Progression 1; Transfinite Curve {100, 103, 102, 101} = 10 Using Progression 1;
-        Transfinite Curve {105, 104, 109, 107} = 1 Using Progression 1;
+    If (SHAPE_FLAG == 0)
+        // face 1
+        Transfinite Curve {19, 24, 23, 21, 5, 8, 6, 7} = 10 Using Progression 1;
+        // side length 1
+        Transfinite Curve {17, 18, 20, 22} = 10 Using Progression 1;
 
+        // face surface 1 
+        Transfinite Surface {23}; Transfinite Surface {11};
+        // side surface 1
+        Transfinite Surface {18}; Transfinite Surface {21}; Transfinite Surface {19}; Transfinite Surface {20};
+        // volume 1
+        Transfinite Volume{2};
+
+        // face 2
+        Transfinite Curve {106, 111, 110, 108, 102, 101, 103, 100} = 10 Using Progression 1;
+        // side length 2
+        Transfinite Curve {104, 105, 107, 109} = 10 Using Progression 1;
+
+        // face surface 2
         Transfinite Surface {110}; Transfinite Surface {105};
-        Transfinite Surface {106}; Transfinite Surface {109}; Transfinite Surface {108}; Transfinite Surface {107};
-        Transfinite Volume{vol_ids[1]};
+
+        // side surface 2
+        Transfinite Surface {109}; Transfinite Surface {106}; Transfinite Surface {107}; Transfinite Surface {108};
+        // volume 2
+        Transfinite Volume{3};
 
         // domain
-        // Horizontal edges
-        Transfinite Curve {122, 116, 127, 119, 114, 112, 115, 113} = 5 Using Progression 1;
-        // Vertical edges
-        Transfinite Curve {120, 117, 118, 121} = 3 Using Progression 1;
+        Transfinite Curve {123, 121, 122, 116, 115, 114, 113, 112} = 10 Using Progression 1;
+        Transfinite Curve {117, 120, 119, 118} = 10 Using Progression 1;
+
+        // Transfinite Curve {128, 131, 130, 129} = 10 Using Progression 1; Transfinite Curve {123, 126, 125, 124} = 10 Using Progression 1;
+        // Transfinite Curve {132, 135, 134, 133} = 1 Using Progression 1;
+        
+        // Transfinite Surface {23}; Transfinite Surface {11};
+        // Transfinite Surface {117}; Transfinite Surface {118}; Transfinite Surface {119}; Transfinite Surface {120};
+        // Transfinite Volume{vol_ids[0]};
+        
+        // // second NW
+        // Transfinite Curve {106, 111, 110, 108} = 10 Using Progression 1; Transfinite Curve {100, 103, 102, 101} = 10 Using Progression 1;
+        // Transfinite Curve {105, 104, 109, 107} = 1 Using Progression 1;
+
+        // Transfinite Surface {110}; Transfinite Surface {105};
+        // Transfinite Surface {106}; Transfinite Surface {109}; Transfinite Surface {108}; Transfinite Surface {107};
+        // Transfinite Volume{vol_ids[1]};
+
+        // // domain
+        // // Horizontal edges
+        // Transfinite Curve {122, 116, 127, 119, 114, 112, 115, 113} = 5 Using Progression 1;
+        // // Vertical edges
+        // Transfinite Curve {120, 117, 118, 121} = 3 Using Progression 1;
     EndIf
     If (SHAPE_FLAG == 1)
         // NW 1
@@ -271,3 +298,4 @@ Else
         Transfinite Curve {14, 2, 4, 17} = 3 Using Progression 1;
     EndIf
 EndIf
+

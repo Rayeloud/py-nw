@@ -1,0 +1,33 @@
+\subsection{Numerical Methods}
+    \subsubsection{Solving PDEs}
+    \begin{itemize}
+        \item Strengths and weaknesses (i.e.\ easy to implement, easy to parallelize, PDE --> $\{\}$ of ODEs, Periodic boundary condition "only", regular mesh only)
+    \end{itemize}
+    \subsubsection{Application to Cahn-Hilliard}
+    \begin{itemize}
+        \item Express the Cahn-Hiliard equation in Fourier space
+        \item Rewrite to facilitate implementation
+    \end{itemize}
+\subsection{Time marching scheme}
+    \subsubsection{Forward Euler Method}
+    \begin{itemize}
+        \item Recall on the method
+    \end{itemize}
+    \subsubsection{Von-Neumann Analysis}
+    \begin{itemize}
+        \item Relation between time discretisation and spatial discretisation
+        \item Highlight constraint
+    \end{itemize}
+    \subsubsection{Semi-implicit treatment}
+    \begin{itemize}
+        \item How to perform the semi-implicit treatment (cite Zhu et al.)
+        \item Why is it useful
+    \end{itemize}
+\subsection{Implementation}
+    \subsubsection{}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\linewidth]{resources/pdf/chap2/implementation.png}
+        \caption{Computation flowchart}
+        \label{fig:t}
+    \end{figure}

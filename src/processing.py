@@ -11,6 +11,7 @@ from tqdm import tqdm
 from multiprocessing import Pool
 from functools import lru_cache
 
+from utils import evalTotalMass
 
 class EdgeDetection(nn.Module):
     def __init__(self):
@@ -153,7 +154,8 @@ def sortByCoords(tensor: torch.Tensor, coords: torch.Tensor):
     return sorted_tensor, sorted_coords
 
 
-def makeCompositionField(meshgrid_size: "tuple[int, int, int]", geom_dim: "tuple[int, int, int]", c_zero: float):
+def makeCompositionField(meshgrid_size: "tuple[int, int, int]", 
+                         geom_dim: "tuple[int, int, int]", c_zero: float):
     """
     Make the composition field.
 
@@ -228,13 +230,13 @@ def makeCompositionField(meshgrid_size: "tuple[int, int, int]", geom_dim: "tuple
 def _process_chunk(args, file):
     start_idx, end_idx, coords, phys_ele, c_zero, idx = args
     print(f"Thread {idx} processing chunk {idx}...")
-
+    #c_alpha, c_beta = c_eq
     # each thread initialize instance of gmsh, reads the geometry file and mesh it
     loadGeom(file)
 
     test_tag = lru_cache(lambda el_tag : _tag_in_phys_group(el_tag, phys_ele))
 
-    local_c = torch.zeros(end_idx - start_idx, dtype=torch.float32)
+    local_c = torch.zeros(end_idx - start_idx, dtype=torch.float32)#.mul_(c_beta)
     chunck_size = end_idx - start_idx
     for i in range(start_idx, end_idx):
         x, y, z = coords[i]
@@ -251,7 +253,8 @@ def _tag_in_phys_group(el_tag, phys_ele):
         return False
 
 
-def makeCompositionFieldParallel(meshgrid_size: "tuple[int, int, int]", geom_dim: "tuple[int, int, int]", c_zero: float, file: str, num_workers=8):
+def makeCompositionFieldParallel(meshgrid_size: "list[int]", 
+                                 geom_dim: "list[float]", c_zero: float, file: str, num_workers=8):
     """
     Make the composition field in parallel.
 
@@ -305,13 +308,19 @@ def makeCompositionFieldParallel(meshgrid_size: "tuple[int, int, int]", geom_dim
     return c, coords.view((nx, ny, nz, 3))
 
 
-def makeIndicatorFunction(Lx, Ly, Lz, dx, dy, dz, substrate_dim, type="circular"):
+def makeIndicatorFunction(meshgrid_size:"list[int]", 
+                          geom_dim:"list[float]", substrate_dim, type="circular"):
+    # fetch dimensions
+    nx, ny, nz = meshgrid_size
+    Lx, Ly, Lz = geom_dim
+    dx = Lx / float(nx)
+    dy = Ly / float(ny)
+    dz = Lz / float(nz)
+
     # define indicator function
     x1 = Lx//2
     y1 = Ly//2
     z1 = Lz//2
-    
-    nx, ny, nz = int(Lx//dx), int(Ly//dy), int(Lz//dz)
 
     _x = torch.linspace(start=0.0, end=Lx, steps=nx)
     _y = torch.linspace(start=0.0, end=Ly, steps=ny)
@@ -346,7 +355,11 @@ def writeVTK(data: torch.Tensor, t: int, config: dict, path="output/", filename=
     """
 
     data = data.numpy()
-    nx, ny, nz = data.shape
+    if data.ndim > 2:
+        nx, ny, nz = data.shape
+    else:
+        nx, ny= data.shape
+        nz = 1
     # spacing = (1, 1, 1)
     lx, ly, lz = config["Lx"], config["Ly"], config["Lz"]
     spacing = (config["dX"], config["dX"], config["dX"])
@@ -419,13 +432,17 @@ def readVTK(filename: str):
 
         # Read the binary data
         data_flat = np.fromfile(file, dtype='>f4').astype(np.float32)  # Big-endian double precision float -> np.float32
-        data = data_flat.reshape((nx, ny, nz), order='F')
+        if nz > 1:
+            data = data_flat.reshape((nx, ny, nz), order='F')
+        else:
+            data = data_flat.reshape((nx, ny), order='F')
         data = np.ascontiguousarray(data)
 
     return data, config
 
 
-def saveFrame(c_device: torch.Tensor, t: int, save_every, config: dict, dt: float, path="output/", filename="time"):
+def saveFrame(c_device: torch.Tensor, 
+              t: int, save_every, config: dict, dt: float, path="output/", filename="time"):
     """
     Save a frame to a VTK file.
 
@@ -451,7 +468,7 @@ def saveFrame(c_device: torch.Tensor, t: int, save_every, config: dict, dt: floa
         return
     
     c = c_device.cpu()
-    mass = evalTotalMass(c)
+    mass = evalTotalMass(c, config["dX"])
     print(f"Total mass at time {t}: {mass:.6f}")
     writeVTK(c, t, config, path=path, filename=filename)
     print(f"Frame {t} written in {path}{filename}_{t:06}.vtk.")
@@ -466,100 +483,6 @@ def plotComp(c: torch.Tensor):
         plt.imsave(f"output/slice/slice_{i}.png", c[:, :, i], cmap='gray')
 
     return
-
-
-def evalTotalMass(c_device: torch.Tensor):
-    """
-    Evaluate the mass of the composition field.
-
-    :param c: torch.Tensor, the composition field
-    :param dx: float, the step in x
-    :param dy: float, the step in y
-    :param dz: float, the step in z
-
-    :return: float, the mass of the composition field
-    """
-    shape = c_device.shape
-    N = shape[0]*shape[1]*shape[2]
-    return (torch.sum(c_device)/N).item()
-
-
-def evalTotalEnergy(c_device, c_device_fft, A, kappa, kx, ky, kz, dx, filter=None, c0_device=None, grad_c0_norm_device=None):
-    """
-    Evaluate the total energy of the composition field.
-
-    :param c: torch.Tensor, the composition field
-
-    :return: float, the total energy of the composition field
-    """
-    # evaluate the bulk free energy (double well potential)
-    # f_0 = A*c_device*c_device*(1.0 - c_device)*(1.0 - c_device)
-
-    # torch.fft.rfftn(c_device, out=c_device_fft, dim=(0, 1, 2))
-
-    # # compute the gradient of the composition field
-    # grad_c_1 = torch.fft.ifftn(1j*kx*c_device_fft, dim=(0, 1, 2)).real
-    # grad_c_2 = torch.fft.ifftn(1j*ky*c_device_fft, dim=(0, 1, 2)).real
-    # grad_c_3 = torch.fft.ifftn(1j*kz*c_device_fft, dim=(0, 1, 2)).real
-
-    # # compute square of the gradient magnitude
-    # grad_c = torch.sqrt(grad_c_1**2 + grad_c_2**2 + grad_c_3**2)
-    # grad_c_squared = grad_c**2 
-
-    # # compute the interfacial energy
-    # f_int = kappa/2*grad_c_squared
-
-
-    # N = c_device.shape[0]*c_device.shape[1]*c_device.shape[2]
-    # # compute the total energy
-    # total_energy = (torch.sum(f_0 + f_int)).item()/N
-    #f_0_0 = A*c0_device*c0_device*(1.0 - c0_device)*(1.0 - c0_device) if c0_device is not None else 0.0
-    f_0_1 = A*c_device*c_device*(1.0 - c_device)*(1.0 - c_device)
-    f_0_2 = A*(1-c_device-c0_device)*(1-c_device-c0_device)*(c_device+c0_device)*(c_device+c0_device) if c0_device is not None else 0.0
-    #f_0 = f_0_0 + f_0_1 + f_0_2
-    f_0 = f_0_1 + f_0_2
-
-    compute_fftn(c_device, out=c_device_fft, filter=filter)
-    c2_device_fft = compute_fftn(1-c_device-c0_device, filter=filter) if c0_device is not None else None
-
-    grad_c_1 = torch.fft.ifftn(1j*kx*c_device_fft, dim=(0, 1, 2)).real
-    grad_c_2 = torch.fft.ifftn(1j*ky*c_device_fft, dim=(0, 1, 2)).real
-    grad_c_3 = torch.fft.ifftn(1j*kz*c_device_fft, dim=(0, 1, 2)).real
-
-    grad_c2_1 = torch.fft.ifftn(1j*kx*c2_device_fft, dim=(0, 1, 2)).real if c0_device is not None else None
-    grad_c2_2 = torch.fft.ifftn(1j*ky*c2_device_fft, dim=(0, 1, 2)).real if c0_device is not None else None
-    grad_c2_3 = torch.fft.ifftn(1j*kz*c2_device_fft, dim=(0, 1, 2)).real if c0_device is not None else None
-    
-    grad_c_sq = grad_c_1**2 + grad_c_2**2 + grad_c_3**2
-    grad_c2_sq = grad_c2_1**2 + grad_c2_2**2 + grad_c2_3**2 if c0_device is not None else 0.0
-
-    #f_int_0 = kappa/2 * grad_c0_norm_device * grad_c0_norm_device if c0_device is not None else 0.0
-    f_int_1 = kappa/2 * grad_c_sq
-    f_int_2 = kappa/2 * grad_c2_sq
-
-    #f_int = f_int_0 + f_int_1 + f_int_2
-    f_int = f_int_1 + f_int_2
-
-    N = c_device.shape[0]*c_device.shape[1]*c_device.shape[2]
-    total_energy = (torch.sum(f_0 + f_int)).item()/N
-    
-    return total_energy
-
-
-def compute_fftn(input, out=None, filter=None):
-    if out is None:
-        out = torch.fft.rfftn(input, dim=(0, 1, 2))
-        out.mul_(filter) if filter is not None else None
-        return out
-    else:
-        torch.fft.rfftn(input, out=out, dim=(0, 1, 2))
-        out.mul_(filter) if filter is not None else None
-
-def compute_ifftn(input, out=None, size=None):
-    if out is None:
-        return torch.fft.irfftn(input, dim=(0, 1, 2), s=size)
-    else:
-        torch.fft.irfftn(input, s=out.size(), dim=(0, 1, 2), out=out)
 
 
 # deprecated

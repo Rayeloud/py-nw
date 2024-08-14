@@ -1,15 +1,24 @@
 // Nanowire configuration in grid units
-R_1 = 6; R_2 = 6;
+R_1 = 5;
+R_2 = 6;
 
-NB_NW = 1; // Number of nanowires
+// Number of nanowires
+NB_NW = 1;
 
-SHAPE = 0; // Shape of the nanowire
+// Shape of the nanowire
+SHAPE = 0;
 
-angle = 90; // Orientation of the second nanowire
-distance = 1; // Distance between the two nanowires
-offset = 0; // Offset from the center of the domain
-delta = 1.1; // Squashing number
+// Orientation of the second nanowire
+angle = 90;
+
+// Distance between the two nanowires
+distance = 1;
+
+// Offset from the center of the domain
+offset = 0;
 
 // Domain parameters
-Lx = 384; Ly = 48; Lz = 384; // L = N * dX
+Lx = 192;
+Ly = 48;
+Lz = 384;
 dX = 0.5;
