@@ -57,7 +57,7 @@ def evalTotalEnergy(c_device: torch.Tensor, jk: "list[torch.Tensor]", params: li
     c_device_fft = compute_fftn(c_device, filter=filter)
 
     # compute square of the gradient magnitude
-    grad_c_squared = 0.0
+    grad_c_squared = torch.zeros_like(c_device)
     for i in range(c_device.ndim):
         grad_c_squared += compute_ifftn(jk[i]*c_device_fft, size=c_device.size())**2
 

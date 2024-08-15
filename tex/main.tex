@@ -1,6 +1,6 @@
 \documentclass[twoside, 12pt]{report}
-\setlength{\headheight}{14.49998pt}
-\addtolength{\topmargin}{-2.49998pt}
+% \setlength{\headheight}{14.49998pt}
+% \addtolength{\topmargin}{-2.49998pt}
 
 %%%%%%%%%%%%
 % Packages %
@@ -9,7 +9,8 @@
 \usepackage[english]{babel}
 \usepackage{packages/sleek}
 \usepackage{packages/sleek-title}
-
+\usepackage{lipsum}
+\usepackage{lmodern}
 
 %%%%%%%%%%%%%%
 % Title-page %
@@ -26,13 +27,14 @@
             Prof.\ Benoît \textsc{Vanderheyden}}
 \context{\Large Master's thesis completed by Rayane \textsc{Eloudrhiri}\\
 in order to obtain the degree of Master of Science in Engineering Physics}
-\date{Academic year 2023--2024}
+\date{Academic year 2023\ --\ 2024}
 
 %%%%%%%%%%%%%%%%
 % Bibliography %
 %%%%%%%%%%%%%%%%
 
 \addbibresource{./resources/bib/references.bib}
+\graphicspath{ {./resources/pdf/} }
 
 %%%%%%%%%%%%
 % Document %
@@ -45,13 +47,14 @@ in order to obtain the degree of Master of Science in Engineering Physics}
     \chapter*{Introduction}\label{chap:intro}
     \markboth{\textsc{INTRODUCTION}}{}
     \input{resources/chapters/0_introduction}
-    \chapter{State of the art}
+    \chapter{State of the art}\label{chap:1-sota}
     \input{resources/chapters/1_sota}
-    \chapter{Methodology}
+    \chapter{Methodology}\label{chap:2-methodology}
     \input{resources/chapters/2_methodology}
-    \chapter{Free-standing nanowire}
+    \chapter{Free-standing nanowire}\label{chap:3-results}
+
     \input{resources/chapters/3_results}
-    \chapter{Nanowire on substrate}
+    \chapter{Nanowire on substrate}\label{chap:4-substrate}
     \input{resources/chapters/4_substrate}
     %\chapter{Polycristalline structure}
     %\input{resources/chapters/5_anisotropy}
@@ -67,7 +70,7 @@ in order to obtain the degree of Master of Science in Engineering Physics}
     \input{resources/chapters/__appendix}
     
     \newpage
-
     \nocite{*}
-    \printbibliography%
+    \printbibliography
+
 \end{document}

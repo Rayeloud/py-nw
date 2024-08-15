@@ -1,16 +1,30 @@
+%First, the notion of metallic nanowires (MNWs) within the broader context of transparent conducting materials and electrodes. This section begins by defining TCMs, discussing their various field of applications and introducing the relevant properties and a means to compare different types of TCMs through a Figure of Merit (FoM). The focus then shifts to metallic nanowires, emphasizing their advantages over the currently most used TCM, Indium-Tin Oxides (ITOs). Different electrical activation methods are then reviewed, with a particular focus on thermal annealing, which shed light on the thermal instability that takes place at the nanowire scale.
 \subsection{Transparent conducting materials}
-    \subsubsection{Introduction}
-        Transparent conducting materials constitute a special class of materials. Exhibiting both optical transparancy and electrical conductivity, their use skyrocketed since the 1950s with the technological advances made. 
-    \subsubsection{Haacke Figure of Merit}
-        placeholder
-    \subsubsection{Transparent Conducting Oxides}
-        placeholder
-    \subsubsection{Metallic Nanowire networks}
-        placeholder
+    Transparent conducting materials (TCMs) constitute a special class of materials which exhibits both high electrical conductivity and optical transparency. In practice, materials which have high electrical conductivity, such as metals, are optically opaque whereas optically transparent materials such as glass, polymers or certain metal oxides are electrical insulators. This tradeoff between electrical conductivity and optical transparency can be understood through energy bandgap theory in solid state physics.\\
+    Indeed, electrical insulators are often optically transparent because of their large bandgap 
+    which allow photons from the visible spectrum to pass through without leading to electronic transitions and thus absorption. On the other hand, metals have a high density of states at the Fermi level which leads to high electrical conductivity but also to high absorption of photons in the visible spectrum.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=.8\linewidth]{chap1/1-energy-band}
+        \caption{Energy band diagram of (a) electrical insulators (b) metals.}
+        \label{fig:1-bandgap}
+    \end{figure}
+    Since the discovery of wide bandgap (above $3.1\,\text{eV}$) semiconductors in the 1950s, TCMs have played an important role in many industrial applications such as solar cells, transparent heaters, touch screens, OLED displays and many others. TCMs are typically used as electrodes (TCEs or TEs) in their various applications, where the dual optimization of the electrical conductivity and the optical transparency is crucial. For instance, in solar cell applications, the optical transparency is defined as the transmittance in the visible spectrum such as $550\,\text{nm}$.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\textwidth]{chap1/1-haacke-fom}
+        \caption{Haacke Figure of Merit (FoM) for different families of TCMs.\cite{LagrangeLangleyGiustiJimenezBrechetBellet2015}}
+        \label{fig:1-haacke-fom}
+    \end{figure}
+    In 1976, Haacke proposed the following Figure of Merit (FoM) to compare different families of TCMs. The FoM is defined as,
+    \begin{equation*}
+        \text{FoM} = \frac{T^{10}}{R_s}
+    \end{equation*}
+    The exponent is chosen such that the FoM is maximized for transmittance higher than $90\%$. This leads to the isolines in \autoref{fig:1-haacke-fom}. Thus, the region of interest for TCMs lies in the upper left corner, at high FoM values. One can see that two families of TCMs lie in this region of interest, transparent conducting oxides (TCOs), especially Indium-Tin oxides (ITOs), and metallic nanowire networks, especially Silver-based one (Ag-MNWs).\\
+    Transparent conducting oxides (TCOs) and more particularly Indium-Tin Oxides (ITOs) are the industry leading choice for TCM application. They are heavily doped wide bandgap (above $3.1\,\text{eV}$) semiconductors. After more than 60 years of research, ITOs have now reached process stability and maturity. However, with the fast growing technological market and the consumers needs, new requirements for TCMs have surfaced. Indeed, the market now orients towards flexible electronics, therefore the TEs required for these new devices must be able to bend without losing their function. Unfortunately, one of the major drawbacks of ITOs is their brittleness. In addition to their mechanical limitations, with the fast growing demand of TEs, the high scarcity Indium and the high production cost in their synthesis lead to the search of alternatives which would solve theses issues.\\
+    Thus the emerging TCMs must be low cost, use earth abundant materials, with competing conductivity and transparency to ITOs. This leads to the introduction of the center topic of this thesis, metallic nanowire network TCMs.\\
+    Metallic nanowires (MNWs) are part of the emerging TCMs and are amongst the most promising. Indeed, due to their intrinsically high electrical conductivity, tunable optical transparency and their relatively simple synthesis and deposition method, MNWs and more especially AgNWs have the potential to replace ITOs.\\
+
+
+
 \subsection{Electrical activation methods of Metallic Nanostructures}
-    \subsubsection{Introduction}
-        placeholder
-    \subsubsection{Overview of different activation methods}
-        placeholder
-    \subsubsection{Thermal annealing}
-        placeholder
