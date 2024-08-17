@@ -1,3 +1,43 @@
 \subsection{Formulation}
-
+    The Cahn-Hilliard equation is a fourth-order partial differential equation which describes the evolution of a conserved order parameter $c$. The equation writes as follows,
+    \begin{equation}\label{eq:2-ch}
+        \frac{\partial c}{\partial t} = -\nabla \mathbf{J} = -\nabla \cdot \left( -M \nabla \mu \right)
+    \end{equation}
+    where $\mathbf{J}$ is the previously defined flux, $M$ is the mobility and $\mu$ is the generalized chemical potential defined as the variational derivative of the total free energy functional $\mathcal{F}$,
+    \begin{equation}\
+        \mu = \frac{\delta \mathcal{F}}{\delta c} = \frac{\partial f_0}{\partial c} - \kappa \Delta^2 c = g(c) - \kappa \Delta^2 c
+    \end{equation}
+    where $\mathcal{F}$ is the Ginzburg-Landau free energy functional describing isotropic binary systems, $f_0$ is the bulk free energy density, $g$ its derivative with respect to $c$ and $\kappa$ is the gradient energy coefficient.\\
+    The Ginzburg-Landau free energy functional is defined as,
+    \begin{equation}\label{eq:2-free-energy}
+        \mathcal{F}(c) = \int_\Omega f_0(c) + \frac{\kappa}{2} |\nabla c|^2 d\Omega
+    \end{equation}
 \subsection{Variable Mobility}
+    Usually, the mobility $M$ is considered constant and uniform across the domain which describes bulk-driven phase separation. However, as it was shown in the phase field formulation, the mobility is a function of the composition i.e.\ the order parameter $c$. Thus, making the mobility dependent on the order parameter leads to changes in the phase separation dynamics.
+    Most commonly used mobility functions are quadratic or quartic polynomials of the order parameter $c$ which penalize the mobility in the bulk to enhance the mobility at the interface thus leading to surface-driven phase separation.\\
+    The mobility function used in this study was introduced by Roy et al.\ \cite{RoyVarmaGururajan2021} and is defined as,
+    \begin{equation}
+        M(c) = 2M_0 \sqrt{|c - c^2|}
+    \end{equation}
+    where $M_0$ is the maximum mobility and $c$ is the order parameter.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[trim={0cm 0cm 1cm 1cm}, clip, width=.49\linewidth]{chap2/2-vm}
+        \caption{Mobility function $M(c)$.}
+        \label{fig:2-mobility}
+    \end{figure}
+    The above figure shows the variable mobility with respect to the order parameter $c$. The mobility is maximum at the interface and minimum in the bulk thus correctly describing surface-driven phase separation.
+\subsection{Surface Diffusion in Silver Nanowires}
+    Atomic diffusion is a key parameter when dealing with nanostructural evolution. In the case of metallic nanowires, surface diffusion play a major role in the morphological instability compared to bulk and grain diffusion. This can be understood by inspecting the Arrhenius plot of Silver self-diffusion.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=.49\linewidth]{chap2/2-arrhenius}
+        \caption{Arrhenius plot of Silver self-diffusion. \cite{Wejranowski2020}}
+        \label{fig:2-arrhenius}
+    \end{figure}
+    The latter shows the diffusivity exponential dependence to temperature. In addition, at temperature where the morphological instability in AgMNWs is observed i.e.\ $T=600\,K$, the surface self-diffusion is the dominant mechanism. Indeed, one can see that there are several order of magnitude between surface, grain boundary and bulk diffusion.\\
+    Since the mobility in the sense of Cahn-Hilliard is related to the diffusivity,
+    \begin{equation}
+        \left[M\right] = \frac{L^2}{T\times E} = \frac{\left[D\right]}{E}
+    \end{equation}
+    it is, in a first approximation, correct to only consider surface mobility when modeling metallic nanowires.

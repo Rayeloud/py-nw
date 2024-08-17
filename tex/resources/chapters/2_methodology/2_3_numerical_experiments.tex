@@ -1,42 +1,71 @@
 \subsection{Benchmark problem}
-    \subsubsection{Theoretical context}
-    \begin{itemize}
-        \item What is spinodal decomposition
-        \item Why phase field modeling
-    \end{itemize}
-    \subsubsection{Results}
-    \begin{itemize}
-        \item Comparison of model results with Zhu et al's
-        \item Model used as a benchmark to check solver consistency and stability
-    \end{itemize}
-\subsection{Consistency and stability assessment}
-    Quantity to track: integral quantity --> total free energy
+    With the growing interest in the field of phase field modeling, Jokisaari et al.\ \cite{JokisaariVoorheesGuyerWarrenHeinonen2017} put together a series of benchmark problems to assess the accuracy and efficiency of newly implemented phase field solvers. The considered benchmark problem is the spinodal decomposition of a binary mixture which is a standard problem in the field of phase field modeling. Spinodal decomposition might be one of the simplest problem to model, but it is also highly relevant as the simulated physics are the basics of more challenging problem such as nanowire morphological instability.
+    \subsubsection{Problem 1 statement}
+    The free energy of the system is defined as \autoref{eq:2-free-energy} where, in this case, the bulk free energy density $f_0$ is defined as,
+    \begin{equation}
+        f_0(c) = A (c-c_{\alpha})^2 (c_{\beta}-c)^2
+    \end{equation}
+    with $c_{\alpha}$ and $c_{\beta}$ the composition in the bulk of the binary mixture $\alpha$--$\beta$.\\
+    The mobility is considered constant and uniform across the domain.
+    Finally, the considered model parameters are the following,
+    \begin{equation}
+        A = 5 \quad \kappa = 2 \quad M = 5 \quad c_{\alpha} = 0.3 \quad c_{\beta} = 0.7 \quad c_0 = 0.5 \quad \epsilon = 0.01
+    \end{equation}
+    The computational domain is defined as a square box of side length $L=200\,(-)$ with periodic boundary conditions on all sides.\\
+    The initial condition is defined as follows,
+    \begin{equation}
+        \begin{aligned}
+            c(x, y, 0) = c_0 + \epsilon [\cos{(0.105x)}\cos{(0.11y)}+\left[\cos{(0.13x)}\cos{(0.087x)}\right]^2\\
+            +\cos{(0.025x-0.15y)}\cos{(0.07x-0.02y)}]
+        \end{aligned}
+    \end{equation}
     \begin{figure}[H]
         \centering
-        \includegraphics[width=0.7\textwidth]{example-image-a}
-        \caption{placeholder}
-        \label{fig:ftot}
+        \includegraphics[width=0.5\textwidth]{chap2/2-jokisaari-problem.png}
+        \caption{Computational domain and initial condition of the benchmark problem.}
+        \label{fig:2-jokisaari-problem}
     \end{figure}
+    \subsubsection{Problem 2 statement}
+    In addition to this benchmark problem, the implemented model is compared to the results of Zhu et al.\ \cite{ZhuChenShenTikare1999} which studied coarsening kinetics using a variable mobility Cahn-Hilliard equation. Snapshots of the microstructural evolution are compared to the one presented in\ \cite{ZhuChenShenTikare1999}.\\
+    The computational domain is defined as a square box of side length $L=1024\,(-)$ with periodic boundary conditions on all sides. The initial condition is defined as follows,
+    \begin{equation}
+        c(x, y, 0) = c_0 + \epsilon \left[ 0.5 - \texttt{RAND()} \right]
+    \end{equation}
+    with $c_0$ the critical composition of the binary mixture and $\texttt{RAND()}$ a random number generator ($X\sim \mathcal{U}(0, 1)$).\\
+    Zhu et al.\ relied on another definition of the mobility function, $M(c)=|1-c^2|$ and a scaled order parameter $c\in\left[-1,1\right]$ whereas the implemented model defines the order parameter as $c\in\left[0,1\right]$. However, the goal is to compare the microstructural evolution under surface-driven phase separation conditions and not exact quantitative comparison.
+\subsection{Consistency and stability assessment}
+    The phase-field model now implemented, the next step consists in checking the consistency and stability of the model. The consistency is ensured if the numerical solution converges to the real solution as the regular mesh is refined. As for the stability, using the CFL condition previously established in \autoref{eq:2-cfl}, one can empirically assess wether further temporal refinement is needed.\\
+    The total free energy of the system is used as a metric to assess both the consistency and stability of the model as it is an integral quantity which is best suited for this purpose. It is compared to the one reported by Jokisaari et al.\ \cite{JokisaariVoorheesGuyerWarrenHeinonen2017} for the benchmark problem.
     \subsubsection{Mesh refinement}
+    The following figure shows the effect of the mesh refinement on the total free energy with respect to time.
     \begin{figure}[H]
         \centering
         \includegraphics[width=0.7\textwidth]{example-image-a}
-        \caption{placeholder}
+        \caption{Total free energy with respect to time for different $\Delta x$ with $\Delta t = 0.5$.}
         \label{fig:ftot_dx}
     \end{figure}
-    \begin{itemize}
-        \item Effect of the mesh refinement on the energy
-        \item Effect of the mesh refinement on the numerical solution (error maps)
-    \end{itemize}
+    One can see that as the mesh is refined, the total free energy converges to the one reported by Jokisaari et al.\ \cite{JokisaariVoorheesGuyerWarrenHeinonen2017}. In addition, for coarse mesh, the total free energy highly deviates from the expected trend. This is mainly due to the poor resolution of the interface. Indeed, to correctly capture the phase separation, the spatial discretization must be fine enough to resolve the interface.
     \subsubsection{Stability assessment}
+    The following figure shows the effect of temporal refinement at constant spatial discretization
+    of the total free energy with respect to time.
     \begin{figure}[H]
         \centering
         \includegraphics[width=0.7\textwidth]{example-image-a}
-        \caption{placeholder}
+        \caption{Total free energy with respect to time for different $\Delta t$ with $\Delta x=0.1$.}
         \label{fig:ftot_dt}
     \end{figure}
-    \begin{itemize}
-        \item Von Neumann analysis --> stability assessment
-        \item Integral quantity v.s. $dt$ with fixed mesh refinement
-        \item Stability condition
-    \end{itemize}
+    One can see that when the empirical \texttt{CFL} condition is fulfilled, further temporal refinement does not lead to significant improvements in the accuracy of the solution.
+
+    \subsection{Validation}
+    The consistency and stability of the model now established, the model can now be validated against another benchmark problem, i.e.\ Zhu et al.\ coarsening kinetics problem. Since the authors only provided snapshots of the microstructural evolution, the evolution of the total free energy is not reported. In addition, error maps are not reported since the initial condition relies on a random number generator. Thus, only the microstructural evolution behavior is assessed.
+    The simulation parameters are the following,
+    \begin{equation}
+        A = 1 \quad \kappa = 1 \quad M_0 = 0.5 \quad \alpha = 0.25 \quad \Delta x = 1.0 \quad \Delta t = 1.0
+    \end{equation}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{chap2/2-zhu-problem.png}
+        \caption{Snapshots of the microstructural evolution of the coarsening kinetics problem. (a) implemented model, (b) Zhu et al.\ \cite{ZhuChenShenTikare1999}.}
+        \label{fig:2-zhu-problem}
+    \end{figure}
+    One can see that the general in \autoref{fig:2-zhu-problem} behavior of surface-driven phase separation is captured by the implemented model. The microstructural evolution behavior is consistent with the one reported in Zhu et al.\ \cite{ZhuChenShenTikare1999}.

@@ -358,7 +358,7 @@ def writeVTK(data: torch.Tensor, t: int, config: dict, path="output/", filename=
     if data.ndim > 2:
         nx, ny, nz = data.shape
     else:
-        nx, ny= data.shape
+        nx, ny = data.shape
         nz = 1
     # spacing = (1, 1, 1)
     lx, ly, lz = config["Lx"], config["Ly"], config["Lz"]

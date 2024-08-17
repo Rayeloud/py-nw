@@ -70,6 +70,9 @@ if __name__ == '__main__':
         option = sys.argv.index("-finite")
         FINITE = True
         FINITE_LENGTH = float(sys.argv[option+1])
+    if "-diffuse" in sys.argv:
+        option = sys.argv.index("-diffuse")
+        DIFFUSE = bool(sys.argv[option+1])
 
     c = None
 
@@ -297,6 +300,8 @@ if __name__ == '__main__':
                 c = 0.5 + c_noise * (torch.cos(0.105 * xx) * torch.cos(0.11 * yy) +\
                                     (torch.cos(0.13 * xx) * torch.cos(0.087 * yy))**2 +\
                                     torch.cos(0.025*xx-0.15*yy) * torch.cos(0.07*xx-0.02*yy))
+
+                print(c.shape)
             
             if SUBSTRATE:
                 indic = makeIndicatorFunction([nx, ny, nz], [Lx, Ly, Lz], 400, type='circular')
@@ -352,7 +357,7 @@ if __name__ == '__main__':
             
             # Set the filter width to ensure smooth transition
             filter_width = 3 * max(dkx, dky, dkz)
-            low_pass_filter = 1/2 * (1 + torch.tanh((filter_radius - torch.sqrt(kx**2 + ky**2 + kz**2))/filter_width))
+            low_pass_filter = 1/2 * (1 + torch.tanh((filter_radius - torch.sqrt(kx**2 + ky**2 + kz**2))/filter_width)) if DIFFUSE else None
 
         else:
             _kx = torch.fft.fftfreq(c.shape[0], d=dx) * 2.0 * np.pi
@@ -377,7 +382,7 @@ if __name__ == '__main__':
             
             # Set the filter width to ensure smooth transition
             filter_width = 3 * max(np.abs(_kx[1] - _kx[0]), np.abs(_ky[1] - _ky[0]))
-            low_pass_filter = 1/2 * (1 + torch.tanh((filter_radius - torch.sqrt(kx**2 + ky**2))/filter_width))
+            low_pass_filter = 1/2 * (1 + torch.tanh((filter_radius - torch.sqrt(kx**2 + ky**2))/filter_width)) if DIFFUSE else None
 
         for i in range(len(k)):
             k[i] = k[i].to(device=device)
