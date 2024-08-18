@@ -1,9 +1,9 @@
 // Nanowire configuration in grid units
-R_1 = 5;
+R_1 = 6;
 R_2 = 6;
 
 // Number of nanowires
-NB_NW = 1;
+NB_NW = 2;
 
 // Shape of the nanowire
 SHAPE = 0;
@@ -18,7 +18,7 @@ distance = 1;
 offset = 0;
 
 // Domain parameters
-Lx = 192;
+Lx = 384;
 Ly = 48;
 Lz = 384;
 dX = 0.5;

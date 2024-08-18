@@ -40,21 +40,39 @@
     The following figure shows the effect of the mesh refinement on the total free energy with respect to time.
     \begin{figure}[H]
         \centering
-        \includegraphics[width=0.7\textwidth]{example-image-a}
+        \includegraphics[width=0.7\textwidth]{chap2/2-consistency.pdf}
         \caption{Total free energy with respect to time for different $\Delta x$ with $\Delta t = 0.5$.}
         \label{fig:ftot_dx}
     \end{figure}
-    One can see that as the mesh is refined, the total free energy converges to the one reported by Jokisaari et al.\ \cite{JokisaariVoorheesGuyerWarrenHeinonen2017}. In addition, for coarse mesh, the total free energy highly deviates from the expected trend. This is mainly due to the poor resolution of the interface. Indeed, to correctly capture the phase separation, the spatial discretization must be fine enough to resolve the interface.
+    One can see that as the mesh is refined, the total free energy converges to the one reported by Jokisaari et al.\ \cite{JokisaariVoorheesGuyerWarrenHeinonen2017}. The slight discrepancies are mainly due to time marching scheme and the spatial discretization used in the implemented model. Jokisaari et al.\ used a time adaptive scheme as well as an adaptive mesh refinement. But for the purpose of this work, a fixed time step and uniform regular grid provide sufficient accuracy.\\
+    The mean square error $MSE$ is also computed over the simulated time and is reported in the following table.
+    \begin{table}[H]
+        \centering
+        \begin{tabular}{|c|c|}
+            \hline
+            $\Delta x$ & $MSE$ \\
+            \hline
+            $5.0$ & $59.5024$ \\
+            $2.0$ & $6.24622$ \\
+            $1.0$ & $6.18410$ \\
+            $0.5$ & $6.14669$ \\
+            \hline
+        \end{tabular}
+        \caption{Mean square error of the total free energy with respect to the mesh refinement.}
+        \label{tab:ftot_mse}
+    \end{table}
+    As the mesh becomes finer, the mean square error decreases less and less.\\
+    In addition, for coarse mesh, the total free energy highly deviates from the expected trend. This is mainly due to the poor resolution of the interface. Indeed, to correctly capture the phase separation, the spatial discretization must be fine enough to resolve the interface between the two phase.
     \subsubsection{Stability assessment}
     The following figure shows the effect of temporal refinement at constant spatial discretization
     of the total free energy with respect to time.
     \begin{figure}[H]
         \centering
-        \includegraphics[width=0.7\textwidth]{example-image-a}
-        \caption{Total free energy with respect to time for different $\Delta t$ with $\Delta x=0.1$.}
+        \includegraphics[width=0.7\textwidth]{chap2/2-stability.pdf}
+        \caption{Total free energy with respect to time for different $\Delta t$ with $\Delta x=1.0$.}
         \label{fig:ftot_dt}
     \end{figure}
-    One can see that when the empirical \texttt{CFL} condition is fulfilled, further temporal refinement does not lead to significant improvements in the accuracy of the solution.
+    One can see that the scheme is unstable for $\Delta t \approx 2.0$ and the total free energy is subject to a sudden increase which is not physical. In addition, one can see that further temporal refinement does not significantly lead to a better precision of the solution and comes with a large computational cost.
 
     \subsection{Validation}
     The consistency and stability of the model now established, the model can now be validated against another benchmark problem, i.e.\ Zhu et al.\ coarsening kinetics problem. Since the authors only provided snapshots of the microstructural evolution, the evolution of the total free energy is not reported. In addition, error maps are not reported since the initial condition relies on a random number generator. Thus, only the microstructural evolution behavior is assessed.

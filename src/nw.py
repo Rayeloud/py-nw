@@ -290,8 +290,8 @@ if __name__ == '__main__':
                 nx, ny, nz = int(Lx/dx), int(Ly/dy), int(Lz/dz) # 2d problem
 
                 # from Jokisaari et al.
-                x = torch.arange(start=0.0, end=Lx, step=dx)
-                y = torch.arange(start=0.0, end=Ly, step=dy)
+                x = torch.linspace(start=0.0, end=Lx, steps=nx)
+                y = torch.linspace(start=0.0, end=Ly, steps=ny)
                 # z = torch.arange(start=0.0, end=Lz, step=dz)
 
                 #xx, yy, zz = torch.meshgrid(x, y, z, indexing='ij')
@@ -300,8 +300,6 @@ if __name__ == '__main__':
                 c = 0.5 + c_noise * (torch.cos(0.105 * xx) * torch.cos(0.11 * yy) +\
                                     (torch.cos(0.13 * xx) * torch.cos(0.087 * yy))**2 +\
                                     torch.cos(0.025*xx-0.15*yy) * torch.cos(0.07*xx-0.02*yy))
-
-                print(c.shape)
             
             if SUBSTRATE:
                 indic = makeIndicatorFunction([nx, ny, nz], [Lx, Ly, Lz], 400, type='circular')

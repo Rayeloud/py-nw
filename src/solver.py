@@ -78,7 +78,7 @@ def compute_mu_fft_SBM(out, c_device, c_device_fft, g_device_fft, wall_device_ff
                         + compute_ifftn(jk[2]*c_device_fft).mul_(grad_wall_device[2]), filter=filter)
     term2 = torch.sqrt(2*A*(c_device-1)**2 * c_device**2)
 
-    out.copy_(g_device_fft )
+    out.copy_(g_device_fft)
 
 
 def compute_mu_fft_bis(out, c_device, c_device_fft, 

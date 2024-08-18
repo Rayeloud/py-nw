@@ -1,20 +1,84 @@
 \subsection{Theoretical context}
-    Free boundary problem description in diffusion problem at microscale. Langer proposed an approach which he initially though to complex to be useful. However, years later with the technological advances made in computers, this approach became the standard when studying microstructural evolution, the phase field modeling theory. In 1959, Cahn and Hilliard continued and expanded on Langer initial work and developed what is refered to now as the Cahn-Hiliard equation. This equation is a fourth order partial differential equation which describes the evolution of a conserved order parameter, refered to as the phase field, in a system described by a free energy functional.
-    \subsubsection{Definition}
-        placeholder
-    \subsubsection{Free Boundary problem}
-        placeholder
-    \subsubsection{Diffuse interface}
-        placeholder
+    In materials science, many important processes take place at the mesoscale. The mesoscale is defined as the in-between nanoscale and macroscale. Mesoscale processes can impact on the measured macro-properties of a system. Thus, accurate model which simulate the physics at that scale are required to understand it.\\
+    Initially, the sharp-interface approach was used to study the physics at that scale. However, many processes at the mesoscale suffer from this mathematical definition and become almost intractable using this approach.\\
+    Indeed, using a sharp-interface approach, consider the case of solidification.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\textwidth]{chap1/1-free-boundary.png}
+        \caption{Sharp interface approach to solidification.}
+        \label{fig:1-sharp-interface}
+    \end{figure}
+    To solve the problem, two diffusion equation must be solved, one inside the solid phase and the other inside the liquid phase. However, both equations depend on the position of the interface which depends on the composition in each phase. This type of problem is referred as a free boundary problem.
+    \begin{equation}
+        \begin{aligned}
+            &\frac{\partial c^i}{\partial t} = D^i \nabla^2 c\quad,\quad i=\alpha, \beta\\
+            &\frac{\partial R}{\partial t} = D \frac{\partial c}{\partial r}\Bigl|_{r=R(t)}\\
+            &\mu^\alpha(c^\alpha_{int}) = \mu^\beta(c^\beta_{int})
+        \end{aligned}
+    \end{equation}
+    The first equation is related to chemical diffusion and is referred to Fick's second law \cite{Gottstein2004}. The second equation tracks the motion of the interface. Finally, the third equation describes the thermodynamic constraint which states that both phases are in equilibrium at the interface. The problem with this approach is that the interface is not well defined and the equations are coupled.\\
+    A solution to this problem was proposed by Langer \cite{Langer}. He proposed a description using a single equation which holds true in the entire domain. To do so, the sharp interface is approximated by a diffuse interface. This approach was first thought to be too complex to be useful. However, with the technological advances, diffuse-interface approach became the standard when studying microstructural evolution, in particular phase-field modeling.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\textwidth]{chap1/1-diffuse-interface.png}
+        \caption{Diffuse interface approach.}
+        \label{fig:1-diffuse-interface}
+    \end{figure}
+    In this context, the microstructure is described by a set of continuous fields which varies smoothly across the interface. Within each phase, the field has the same values and meaning as in the sharp interface approach. The position of the free interface can be retrieved through contours of constant values of the field variable. In addition, no constraint are required at the interface.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.3\textwidth]{chap1/1-phase-field.png}
+        \caption{Example of a two phase microstructure. \cite{LeeHuhJeongShinYunKim2014}}
+        \label{fig:1-phase-field}
+    \end{figure}
 \subsection{Fundamental principles and Formulation}
-    \subsubsection{Diffusion equation}
-        placeholder
-    \subsubsection{Thermodynamic considerations}
-        placeholder
-    \subsubsection{Cahn-Hilliard equation}
-        placeholder
+    The microstructure is described by a set of continuous fields \cite{}, i.e. the phase-field variables or order parameter. These variables can either be conserved or non-conserved depending on the phase-field model used. Conserved order parameter often refers to the local composition whereas non-conserved order parameter often refers to crystal structure or to the phase of a composition (e.g. solid-liquid).\\
+    The driving force of microstructural dynamics is the minimization of the free energy of the system \cite{} which can be written as,
+    \begin{equation}
+        F = F_{bulk} + F_{int} + F_{source}
+    \end{equation}
+    with $F_{bulk}$ the free energy associated to the bulk of the system, $F_{int}$ the free energy associated to interfacial interactions and $F_{source}$ the free energy associated to additional sources of energy such as elastic strains, electromagnetic fields, and so on \cite{}.\\
+    Classically, thermodynamic properties are assumed homogeneous throughout the system. However, in the case of phase-field modeling, the system is considered `\textit{nonuniform}', i.e. `\textit{a system having a spatial variation in one of its intensive scalar properties, such as composition or density}'\cite{CahnHilliard1958}. Its free energy is then given by a functional of the phase-field variables,
+    \begin{equation}
+        \begin{aligned}
+            \mathcal{F}(c) &= \int_{\Omega} f d\Omega\\
+            f &= f(c, \nabla c, \nabla^2 c, \ldots)
+        \end{aligned}
+    \end{equation}
+    The local free energy density $f$ can be expanded in a Taylor series around $f_0$, the free energy of a uniform system. Thus, the bulk free energy density $f_0$ represents the `\textit{interaction of different components in a homogeneous system}' \cite{Wu2022}. The thermodynamically relevant expression is logarithmic (Helmholtz). However, in practice it is approximated using a quartic polynomials with minima at the equilibrium composition.
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.5\textwidth]{chap1/1-free-energy.png}
+        \caption{Bulk free energy density $f_0$ of a binary mixture and its quartic approximation. \cite{LeeHuhJeongShinYunKim2014}}
+        \label{fig:1-free-energy}
+    \end{figure}
+    After some algebraic manipulations and assuming the system to be centrosymmetric, the free energy functional can be written as,
+    \begin{equation}
+        \mathcal{F}(c) =\int_\Omega f_0(c) + \frac{\kappa}{2} |\nabla c|^2 d\Omega
+    \end{equation}
+    with $\kappa$ the gradient energy coefficient.\\
+    This expression of the free energy functional is known as the Ginzburg-Landau\cite{} free energy functional. Thus, an equilibrium state is reached when the composition field $c$ is such that it extremizes the free energy functional. Variational calculus leads to Euler-Lagrange equation,
+    \begin{equation}
+        \frac{\partial f_0}{\partial c} - \kappa \nabla^2 c = 0
+    \end{equation}
+    The solution of this equation extremizes the free energy functional. However, there are no constraint on the average value of $c$ in the system, i.e. the total mass is not conserved. To ensure mass conservation, a constraint is added through a Lagrange multiplier $\mu$ which leads to,
+    \begin{equation}
+        \mu = \frac{\delta \mathcal{F}}{\delta c} = \frac{\partial f_0}{\partial c} - \kappa \nabla^2 c
+    \end{equation}
+    the generalized chemical potential.\\
+    The order parameter $c$ is a conserved quantity and satisfies the continuity equation,
+    \begin{equation}
+        \frac{\partial c}{\partial t} + \nabla \cdot \mathbf{J} = 0
+    \end{equation}
+    where $\mathbf{J}$, the diffusion flux, is given by,
+    \begin{equation}
+        \mathbf{J} = -M \nabla \mu
+    \end{equation}
+    This leads to the Cahn-Hilliard equation,
+    \begin{equation}
+        \frac{\partial c}{\partial t} = \nabla \cdot \left[ M \nabla \left( \frac{\partial f_0}{\partial c} - \kappa \nabla^2 c \right) \right]
+    \end{equation}
+    with $M$ the mobility parameter which is function of the atomic mobilities of the constituents of the system.
 \subsection{Applications}
-    \subsubsection{Microstucture dynamics}
-        placeholder
-    \subsubsection{Nanostructure dynamics}
-        placeholder
+    Phase-field modeling has been used in a wide range of applications from material sciences to biology and biomedical sciences (tumor growth).\\
+    In material science, different scales can be identified. At the mesoscale, fracture mechanics \cite{}, fluid flows \cite{}, at the microscale, solidification \cite{}, grain growth \cite{}, spinodal decomposition \cite{}, coarsening kinetics \cite{}, and at the nanoscale, nanodots sintering \cite{sintering} and eventually nanowire breakups \cite{RoyVarmaGururajan2021} which inspired the present work.
