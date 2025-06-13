@@ -1,0 +1,49 @@
+Polyol-grown Silver nanowires are known for their distinct polycrystalline structure, which leads to a regular pentagonal cross-section. This morphology arises from their synthesis (polyol process), which starts from a multiply twinned nanoparticle seed (MTP) that grows through Ostwald ripening with the assistance of PVP \cite{Sun2003,LangleyGiustiMayousseCelleBelletSimonato2013}.
+The cross-section and a schematic illustration of the polyol process from a MTP to a pentagonal nanowire are shown in \autoref{fig:3-pentagonal-sem}.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{chap3/3-sem-nw-cross.pdf}
+        \caption{(a) Scanning electron microscopy (SEM) image of a polyol-grown Silver nanowire showing a pentagonal cross-section, highlighted in orange. (b) Schematic of a Silver MTP before and after the polyol process. Adapted from \cite{Sun2003}.}
+        \label{fig:3-pentagonal-sem}
+    \end{figure}
+As a result, the surface energy of the nanowire is anisotropic since each facet have different packing densities, leading to different surface energies. More packing means that, on the facet, the atoms are more closely packed leading to a lower surface energy and increased stability. In the case of pentagonal silver nanowires, the $(100)$ facets are the least stable facet compared to  $(111)$ facets \cite{MarzbanradRiversPengZhaoZhou2015,GorshkovTereshchukSareh2020,LiangYu2019}. 
+
+In the context of the phase-field model, anisotropic surface energy can be treated by different approaches such as anisotropic Cahn-Hilliard and Allen-Cahn coupling (to treat each crystal as an independant non-conserved order parameter), or by using a single conserved order parameter with anisotropic surface energy.
+
+However in this work, anisotropic surface energy are neglected in favor of a simplified isotropic surface energy model as first discussed in \autoref{chap:2_4-nanowire}. This simplification is motivated by the fact that anisotropic surface energy treatment, and polycrystalline consideration, require a more complex and more computationally expensive implementation of the presented phase-field model \cite{RoyVarmaGururajan2021,RoyGururajan2021,BellonLi2021,ChockalingamKouznetsovaSluisGeers2016,XueChengLeiWen2022,TorabiWiseLowengrubRätzVoigt2007,TorabiLowengrubVoigtWise2009}. 
+Nevertheless, the relevance of crystalline effects on the morphological instability of nanowires is investigated by considering a faceted rod with a pentagonal cross-section. 
+
+\subsection{Pentagonal cross-section model}
+As recalled in \autoref{chap:2_4-nanowire}, the surface energy minimization is the driving force in the presented model. In this context, the geometry of the pentagonal cross-section is chosen such that the outer surface area matches the outer surface area of the cylindrical approximation of the nanowire. The side length $s$ of the pentagonal cross-section is defined as such,
+\begin{equation}
+    5 s = 2 \pi R \implies s = \frac{2}{5}\pi R \ .
+\end{equation}
+The associated circumradius $R_p$ can then be expressed as,
+\begin{equation}
+    R_p = \frac{\pi}{5 \sin\left(\frac{\pi}{5}\right)} R \ .
+\end{equation}
+This condition ensures that both outer surface areas are equal provided sufficient mesh refinement. The initial total free energy of the pentagonal cross-section is compared to the circular cross-section for different refinement factor $\rho$ in \autoref{tab:3-ftot_shape} and the voxelised pentagonal nanowire is shown in \autoref{fig:3-voxel-pentagon}. As expected, the total free energy difference decreases when the mesh is more refined, i.e. when the refinement factor $\rho$ increases. The condition is thus satisfied starting from $\Delta x=0.5$.
+
+   \begin{table}[H]
+        \centering
+        \begin{tabular}{cccc}
+            \hline
+            $\rho$ & $\mathcal{F}_p$ & $\mathcal{F}_c$ & $\Delta \mathcal{F}$\\
+            \hline
+            $2.0$   & $1200.14$ & $1223.78$   & $23.64$ \\
+            $4.0$   & $1227.18$ & $1232.16$   & $4.98$ \\
+            $8.0$  & $1229.8$ & $1232.22$   & $2.42$ \\
+            \hline
+        \end{tabular}
+        \caption{Total free energy of the pentagonal cross-section $\mathcal{F}_p$ and the circular $\mathcal{F}_c$ for different mesh sizes $\Delta x$. The difference $\Delta \mathcal{F}$ is also provided. The total free energy is given in unit radius $R/L^*$.}
+        \label{tab:3-ftot_shape}
+    \end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{chap3/3-nw-voxel.png}
+    \caption{Voxelisation of the pentagonal cross-section nanowire with (a) $\rho = 4$ (b) $\rho = 2$.}
+    \label{fig:3-voxel-pentagon}
+\end{figure}
+
+

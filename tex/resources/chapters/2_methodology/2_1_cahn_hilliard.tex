@@ -1,43 +1,48 @@
 \subsection{Formulation}
-    The Cahn-Hilliard equation is a fourth-order partial differential equation which describes the evolution of a conserved order parameter $c$. The equation writes as follows,
+    The Cahn-Hilliard equation, derived in \autoref{chap:1_3-phase-field}, is a fourth-order partial differential equation which describes the evolution of a conserved order parameter $c$. The equation writes as,
     \begin{equation}\label{eq:2-ch}
-        \frac{\partial c}{\partial t} = -\nabla \mathbf{J} = -\nabla \cdot \left( -M \nabla \mu \right)
+        \frac{\partial c}{\partial t} = -\nabla \cdot \mathbf{J} = -\nabla \cdot \left( -M \nabla \mu \right)\ ,
     \end{equation}
-    where $\mathbf{J}$ is the previously defined flux, $M$ is the mobility and $\mu$ is the generalized chemical potential defined as the variational derivative of the total free energy functional $\mathcal{F}$,
-    \begin{equation}\
-        \mu = \frac{\delta \mathcal{F}}{\delta c} = \frac{\partial f_0}{\partial c} - \kappa \Delta^2 c = g(c) - \kappa \Delta^2 c
+    where $\mathbf{J}$ is the previously defined diffusion flux in \autoref{eq:1-flux}, $M$ is the mobility function and $\mu$ is the generalized chemical potential defined as the variational derivative of the total free energy functional $\mathcal{F}$,
+    \begin{equation}\label{eq:2-mu}
+        \mu = \frac{\delta \mathcal{F}}{\delta c} = \frac{\partial f_0}{\partial c} - \kappa \Delta^2 c = wg'(c) - \kappa \Delta^2 c
     \end{equation}
-    where $\mathcal{F}$ is the Ginzburg-Landau free energy functional describing isotropic binary systems, $f_0$ is the bulk free energy density, $g$ its derivative with respect to $c$ and $\kappa$ is the gradient energy coefficient.\\
+    where $\mathcal{F}$ is the Ginzburg-Landau free energy functional describing isotropic binary systems, $f_0$ is the bulk free energy density, $wg'(c)$ its derivative with respect to $c$, $w$ the height of the double well potential and $\kappa$ is the gradient energy coefficient.\\
     The Ginzburg-Landau free energy functional is defined as,
     \begin{equation}\label{eq:2-free-energy}
-        \mathcal{F}(c) = \int_\Omega f_0(c) + \frac{\kappa}{2} |\nabla c|^2 d\Omega
+        \mathcal{F}(c) = \int_\Omega f_0(c) + \frac{\kappa}{2} |\nabla c|^2 d\Omega\ .
     \end{equation}
 \subsection{Variable Mobility}
-    Usually, the mobility $M$ is considered constant and uniform across the domain which describes bulk-driven phase separation. However, as it was shown in the phase field formulation, the mobility is a function of the composition i.e.\ the order parameter $c$. Thus, making the mobility dependent on the order parameter leads to changes in the phase separation dynamics.
-    Most commonly used mobility functions are quadratic or quartic polynomials of the order parameter $c$ which penalize the mobility in the bulk to enhance the mobility at the interface thus leading to surface-driven phase separation.\\
+    Usually, the mobility $M$ is considered constant and uniform across the domain which describes bulk-driven phase separation \cite{ZhuChenShenTikare1999,Voorhees2018}. However, as it was shown in the phase field formulation in \autoref{chap:1_3-phase-field}, the mobility can be a function of the composition i.e.\ the order parameter $c$ \cite{MoelansBlanpainWollants2008}. Thus, making the mobility dependent on the order parameter leads to changes in the phase separation dynamics.
+    Most commonly used mobility functions are quadratic or quartic polynomials of the order parameter $c$ which penalize the mobility in the bulk to enhance the mobility at the interface, thus leading to surface enhanced phase separation \cite{ZhuChenShenTikare1999,Cahn1961,PesceMunch2021,CahnTaylor1994}.\\
     The mobility function used in this study was introduced by Roy et al.\ \cite{RoyVarmaGururajan2021} and is defined as,
     \begin{equation}
-        M(c) = 2M_0 \sqrt{|c - c^2|}
+        M(c) = 2M_0 \sqrt{|c - c^2|}\ ,\label{eq:2-vm}
     \end{equation}
-    where $M_0$ is the maximum mobility and $c$ is the order parameter.
+    where $M_0$ is the maximum mobility and $c$ is the order parameter. It is an adaptation of the classical mobility function $M(c) = |1-c^2|$ proposed by Langer et al.~\cite{Langer1975} for order parameters $c\in[-1,1]$. Both functions are shown in \autoref{fig:2-mobility}.
     \begin{figure}[H]
         \centering
         \includegraphics[trim={0cm 0cm 1cm 1cm}, clip, width=.49\linewidth]{chap2/2-vm}
-        \caption{Mobility function $M(c)$.}
+        \caption{Comparison of the mobility function proposed by Roy et al.~\cite{RoyVarmaGururajan2021} and the classical mobility function proposed by Langer et al \cite{Langer1975}. The former has a smoother transition between the interfacial mobility and the bulk mobility. This smoother transition effectively reduces the stiffness of the equation, i.e. it improves its overall numerical stability \cite{Roy2021,LiTang2020}.}
         \label{fig:2-mobility}
     \end{figure}
-    The above figure shows the variable mobility with respect to the order parameter $c$. The mobility is maximum at the interface and minimum in the bulk thus correctly describing surface-driven phase separation.
+    The above figure shows the variable mobility with respect to the order parameter $c$. The mobility is maximum at the interface defined as $c \approx 0.5$ and minimum in the bulk defined as $c \approx 0$ and $c \approx 1$. This leads to surface-driven dynamics in the system.
+    The mobility function can be found in different forms in the literature but they all can be rewritten as,
+    \begin{equation}
+        M(c) = 4^n M_0 |c-c^2|^n\ .
+        \label{eq:2-mobility-general}
+    \end{equation}
 \subsection{Surface Diffusion in Silver Nanowires}
-    Atomic diffusion is a key parameter when dealing with nanostructural evolution. In the case of metallic nanowires, surface diffusion play a major role in the morphological instability compared to bulk and grain diffusion. This can be understood by inspecting the Arrhenius plot of Silver self-diffusion.
+    Atomic diffusion is a key parameter when dealing with nanostructural evolution. In the case of metallic nanowires, Rhead \cite{Rhead1963} showed through experimental work that surface diffusion is the dominant mass transport mechanism compared to bulk and grain diffusion. It was showed that self-diffusion coefficients fit an Arrhenius law, i.e. $D_s = D_0 \exp(Q_s/kT)$, with $D_s$ the self-diffusion coefficient. \autoref{fig:2-arrhenius} shows the Arrhenius plot of Silver surface, grain and bulk self-diffusion.
     \begin{figure}[H]
         \centering
         \includegraphics[width=.49\linewidth]{chap2/2-arrhenius}
-        \caption{Arrhenius plot of Silver self-diffusion. \cite{Wejranowski2020}}
+        \caption{Arrhenius plot of Silver self-diffusion as a function of temperature. \cite{Wejrzanowski2017}}
         \label{fig:2-arrhenius}
     \end{figure}
-    The latter shows the diffusivity exponential dependence to temperature. In addition, at temperature where the morphological instability in AgMNWs is observed i.e.\ $T=600\,K$, the surface self-diffusion is the dominant mechanism. Indeed, one can see that there are several order of magnitude between surface, grain boundary and bulk diffusion.\\
-    Since the mobility in the sense of Cahn-Hilliard is related to the diffusivity,
+    In addition, at temperature where the morphological instability in AgMNWs is observed i.e.\ $1/T\approx 1.6 \,K^{-1}$ or $T=600\,K$ \cite{Langley2014}, the surface self-diffusion is the dominant mechanism. Indeed, one can see that several orders of magnitude separate surface self-diffusion from grain boundary and bulk self-diffusion.\\
+    The mobility function $M(c)$ is related to the interdiffusion or self-diffusion coefficient $D$ as shown by Moelans et al.~\cite{MoelansBlanpainWollants2008}. In general, the mobility is defined as,
     \begin{equation}
-        \left[M\right] = \frac{L^2}{T\times E} = \frac{\left[D\right]}{E}
+        M(c) = \frac{D}{\partial^2 f_0 / \partial c^2}\ .
     \end{equation}
-    it is, in a first approximation, correct to only consider surface mobility when modeling metallic nanowires.
+    In a simplified framework, modeling the surface self-diffusion as the dominant mechanism can be achieved by considering the mobility function as a function of $c$ as shown in \autoref{eq:2-vm}.

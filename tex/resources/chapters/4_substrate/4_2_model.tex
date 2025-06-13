@@ -1,0 +1,56 @@
+In this section, the configuration of the problem is defined. First, the contact angle condition is discussed from images of spheroidized nanowires. Then, the geometry of the nanowires are defined, for both the circular and pentagonal cross-section approximation. Finally, the configurations are presented for both the single nanowire and the junction of two nanowires.
+\subsection{Contact angle condition}
+    Several SEM images of polyol-grown Silver nanowires after spheroidization are analysed to crudely measure the contact angle between the nanowires and the substrate. An example of SEM image is shown in \autoref{fig:4-contact-angle-nw}. The experimental contact angle are measured using the \texttt{ImageJ} software \cite{ImageJ2012}. The contact angle $\theta_B$ can be measured using the relation,
+    \begin{equation}
+        \theta_B = \arctan{\frac{2 h}{w}}\ ,
+    \end{equation}
+    where $h$ is the height of the spheroid and $w$ is the width of the spheroid on the substrate.
+    After measuring the contact angle of $70$ spheroids, the contact angle $\theta_B$ is found to be in average,
+    \begin{equation}
+        \theta_B \approx 105.567 \pm 6.977 \ ^\circ\ .
+    \end{equation}
+    As shown in \autoref{fig:3-pentagonal-sem}, the nanowires have a regular pentagonal cross-section. The interior angle of a regular pentagon is $108^\circ$. Therefore, it can be assumed that the contact angle $\theta_B$ remains constant throughout the spheroidization process and is equal to the initial contact angle, i.e. the interior angle of the nanowire cross-section.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.65\textwidth]{chap4/4-sphere-angle-zoom.png}
+        \caption{Scanning electron microscopy (SEM) image of a polyol-grown Silver nanowire after spheroidization showing a contact angle $\theta_B$ between the spheroids and the flat substrate.}
+        \label{fig:4-contact-angle-nw}
+    \end{figure}
+
+\subsection{Geometry}
+    Two configurations of the nanowire shape are considered, the circular approximation and the pentagonal cross-section. As previously established in \autoref{chap:2_4-nanowire}, surface energy minimization is the driving force behind the morphological instability of the nanowires. Thus, the geometry of the circular approximation of the nanowire is defined such that the outer surface area matches the outer surface area of the pentagonal cross-section nanowire \cite{BaltyBaretSilhanekNguyen2024}. The cross-section of both configurations is shown in \autoref{fig:4-geometry}.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\textwidth]{chap4/4-shape-approx.png}
+        \caption{Geometrical configuration of both the pentagonal and circular cross-section. $R$ is the radius of the circular approximation and $h$ is the distance from the center of the circular cross-section to the substrate. The angles $\theta^p_B$ and $\theta^c_B$ are respectively the contact angle the pentagonal ($=108^\circ$) and the circular cross-section. The value of $\theta^c_B$ is chosen such that the outer surface area in contact with the vapor phase (exterior) matches the outer surface area of the pentagonal cross-section. Adapted from \cite{BaltyBaretSilhanekNguyen2024}.}
+        \label{fig:4-geometry}
+    \end{figure}
+    Following the same strategy as Balty et al.~\cite{BaltyBaretSilhanekNguyen2024}, the condition of outer surface matching writes as follows,
+    \begin{equation}
+        4 s = 2 \theta^c_B R \implies s = \frac{\theta^c_B}{2} R\ .
+    \end{equation}
+    Using trigonometry, the side length $s$ can also be expressed as, $s=2R\sin{\theta^c_B}$. This finally leads to,
+    \begin{equation}
+        4 \sin{\theta^c_B} = \theta^c_B\ \implies \theta^c_B \approx 141.8^\circ\ .
+    \end{equation}
+    The substrate is located at a distance $h=|R\cos{\theta^c_B}|$ from the center of the circular cross-section and at a distance $a_p=s/2\cot{\frac{\pi}{5}}$, i.e. the apothem, from the center of the pentagonal cross-section. These quantities are used in the SBM formalism to define both the contact angle and the position of the substrate in the following.
+
+    As for the junction configuration, the bottom nanowire is considered in contact with the substrate and the top nanowire is in free-standing configuration. This choice is motivated by SEM images which reveals that, in nanowire networks, junctions are often characterised by a nanowire in direct contact with the substrate and a second nanowire which rests on others as shown in \autoref{fig:4-sem-junction-motivation}. 
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.45\textwidth]{chap4/4-sem-network.png}
+        \caption{Scanning electron microscopy (SEM) image of a a cross-sectional view of AgNW network. Two nanowires are in contact, with the bottom one resting on the substrate and the top one resting on others, `free-standing'. The image also reveals that the nanowires can bend and touch the substrate \cite{Tokuno2011}.}
+        \label{fig:4-sem-junction-motivation}
+    \end{figure}
+    However, since nanowires are flexible, the top nanowire can bend and touch the substrate, as can be seen in \autoref{fig:4-sem-junction-motivation}. The presented model can represent such configuration, however, the full dependency on the bending arc is not considered in this work.
+    Schematics of the studied configurations are shown in \autoref{fig:4-geometry-configs}.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.75\textwidth]{chap4/4-geometry-voxels.pdf}
+        \caption{Schematic of a (a) single nanowire on substrate with circular cross-section (b) single nanowire on substrate with pentagonal cross-section. The other two schematic are of a junction of two nanowires with (c) circular (d) pentagonal cross-section with the bottom one in contact with the substrate.}
+        \label{fig:4-geometry-configs}
+    \end{figure}
+
+    
+
+    

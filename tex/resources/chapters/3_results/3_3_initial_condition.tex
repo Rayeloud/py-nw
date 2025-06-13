@@ -1,0 +1,42 @@
+As mentioned in \autoref{chap:2_4-nanowire}, the effect of the thermal noise induced by the temperature is modeled by the addition of a small stochastic perturbation to the initial condition. 
+It is thus crucial to assess the influence of the initial perturbation on the resulting dynamics. To do so, a small reminder on the growth dynamics of small fluctuations in the 1D Cahn-Hilliard is presented yielding the growth rate dispersion relation. 
+\subsection{1D perturbation growth dynamics}
+The perturbation dynamics in the 1D Cahn-Hilliard equation with constant mobility $M$ is studied by considering an initial uniform composition field $c_0$ upon which a small fluctuation is added. The composition field $c$ is then defined as,
+\begin{equation}
+    c(\mathbf{r},t) = c_0 + \epsilon \tilde{c}(\mathbf{r}, t)\ ,
+\end{equation}
+where $\epsilon \ll 1$ and $\tilde{c}(x,t)$ is the function describing the stochastic fluctuation along $x$.\\
+The Cahn-Hilliard equation can then be linearized at the first order in $\epsilon$ yielding,
+\begin{equation}
+    \frac{\partial \tilde{c}}{\partial t} = M\left(f_0''\frac{\partial^2 \tilde{c}}{\partial \mathbf{r}^2} - \kappa \frac{\partial^4 \tilde{c}}{\partial \mathbf{r}^4}\right)\ ,
+\end{equation}
+the evolution equation of the stochastic perturbation $\tilde{c}$, where $f_0''$ the second derivative of the bulk free energy density $f_0$ evaluated at $c_0$.\\
+The time evolution of the perturbation can then be studied by taking its spectral decomposition leading to,
+\begin{equation}
+    \tilde{c}(\mathbf{r}, t) = \int_{-\infty}^{+\infty} \hat{\tilde{c}}(\mathbf{k}, 0) e^{\sigma(\mathbf{k}) t} e^{-j \mathbf{k} \cdot \mathbf{r}} d\mathbf{k}\ ,
+\end{equation} 
+where $\sigma(\mathbf{k})=-M\left[f_0''k^2+\kappa k^4\right]$ the mode-dependent growth rate of the perturbation. Whether the perturbation grows or decays depends on the sign of $\sigma(\mathbf{k})$, i.e. whether the perturbation is stable or unstable, leading to the dispersion relation in \autoref{fig:3-disp-theoretical}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.49\linewidth]{chap3/3-dispers-theoretical.pdf}
+    \caption{Theoretical dispersion relation of the 1D perturbed Cahn-Hilliard equation. $k_m$ and $k_c$ are respectively the maximally growing wavenumber, associated to the maximum growth rate $\sigma_m$, and the critical wavenumber with a zero growth rate.}
+    \label{fig:3-disp-theoretical}
+\end{figure}
+When the curvature of the free energy density is positive, the composition field is stable for all modes of the perturbation. However, when the curvature is negative the perturbation is unstable for all modes in the range $0 < k^2 < k_c^2$. 
+
+\subsection{Growth rate estimation}
+The growth of the perturbation leads to the onset of ovulation as discussed in \autoref{chap:2-methodology}. Thus, naturally, the maximum growth rate $\sigma_m$ is related to the breakup time $t_b$ of the nanowire as,
+\begin{equation}
+    \sigma_m \approx \frac{1}{t_b}\ .
+\end{equation}
+The growth rate $\sigma_m$ can be estimated by performing phase-field simulations of sinusoidal perturbations of the initial radius $R$ of the nanowire. The initial perturbation defined in \autoref{eq:2-c_t} is then updated as,
+\begin{equation}
+    R = R_0 (1 + \epsilon \sin{(\mathbf{k}\cdot\mathbf{r})}) \quad\text{and}\quad R = R_0 (1 + \epsilon (0.5 - \texttt{RAND()}))\ .
+\end{equation}
+The wavenumber selection is then highlighted by comparing the expected maximally growing wavenumber $k_m$ to the numerically obtained wavenumber of a stochastic initial perturbation. In addition, to quantify the effect of the initial perturbation amplitude, two different initial perturbation amplitudes $\epsilon$ are considered.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.65\linewidth]{chap3/3-noise-shape.png}
+    \caption{Initial morphology of an infinitely long free-standing nanowire under (a) a sinusoidal perturbation (b) a random stochastic perturbation.}
+    \label{fig:3-initial-noise-shape}
+\end{figure}

@@ -25,8 +25,11 @@ where:
 import torch
 import numpy as np
 from tqdm import tqdm
-
+import matplotlib.pyplot as plt
+# from numba import jit
 from utils import compute_fftn, compute_ifftn
+
+T_ITER = 0
 
 def compute_g(out, c_device, A, c_zero=1.0):
     """
@@ -47,8 +50,11 @@ def compute_vm(out, c_device, M, a=1.0):
     :param out: torch.Tensor, the output tensor
     :param c_device: torch.Tensor, the composition field
     """
-    #out.copy_(M*torch.abs(1-c_device*c_device))
-    out.copy_(float(M*(1.0-a)) + 2*a*M*torch.sqrt(torch.abs(c_device - c_device*c_device)))
+    #out.copy_(M*torch.abs(1-c_device*c_device)) # mobility function for a composition field -1 < c < 1
+    n=2.0
+    out.copy_(float(M*(1.0-a)) + 2*a*M*torch.sqrt(torch.abs(c_device - c_device*c_device))) # mobility function for a composition field 0 < c < 1
+    out.copy_(4.0**n * M * torch.pow(torch.abs(c_device - c_device*c_device), n))
+    # out.copy_(16.0*M*c_device*c_device*(1.0-c_device)*(1.0-c_device)) # mobility function for a composition field 0 < c < 1
     # c_alpha = 1.0
     # c_beta = 0.0
     # out.copy_(M*(1-a) + a*M*torch.sqrt((c_device - c_alpha)*(c_device - c_alpha)*(c_beta - c_device)*(c_beta - c_device)))
@@ -71,14 +77,83 @@ def compute_mu_fft(out, c_device_fft, g_device_fft, kappa, k2):
     out.copy_(g_device_fft + kappa * k2 * c_device_fft)
 
 
-def compute_mu_fft_SBM(out, c_device, c_device_fft, g_device_fft, wall_device_fft, grad_wall_device, norm_grad_c_wall_device, params, jk, k2, filter=None):
-    A, kappa = params
-    term1 = compute_fftn(compute_ifftn(jk[0]*c_device_fft).mul_(grad_wall_device[0])
-                        + compute_ifftn(jk[1]*c_device_fft).mul_(grad_wall_device[1])
-                        + compute_ifftn(jk[2]*c_device_fft).mul_(grad_wall_device[2]), filter=filter)
-    term2 = torch.sqrt(2*A*(c_device-1)**2 * c_device**2)
+def compute_mu_fft_SBM(out, c_device, c_device_fft, g_device_fft, wall_device, inv_wall_device, grad_wall_x_grad_c_device_fft, neumann_bc_device_fft, temp_device, norm_grad_wall_device, params, jk, filter=None):
+    A, kappa, theta = params
 
-    out.copy_(g_device_fft)
+    compute_ifftn(jk[0]*c_device_fft, out=temp_device, size=c_device.size())
+    compute_fftn(wall_device * temp_device, filter=filter, out=grad_wall_x_grad_c_device_fft[0])
+
+    compute_ifftn(jk[1]*c_device_fft, out=temp_device, size=c_device.size())
+    compute_fftn(wall_device * temp_device, filter=filter, out=grad_wall_x_grad_c_device_fft[1])
+
+    grad_wall_x_grad_c_device_fft[0].mul_(jk[0]).add_(grad_wall_x_grad_c_device_fft[1].mul_(jk[1]))
+    if c_device.ndim > 2:
+        compute_ifftn(jk[2]*c_device_fft, out=temp_device, size=c_device.size())
+        compute_fftn(wall_device * temp_device, filter=filter, out=grad_wall_x_grad_c_device_fft[2])
+        grad_wall_x_grad_c_device_fft[0].add_(grad_wall_x_grad_c_device_fft[2].mul_(jk[2]))
+
+    # compute_ifftn(grad_wall_x_grad_c_device_fft[0], out=temp_device, size=c_device.size())
+    # term1 = - kappa * compute_fftn(inv_wall_device * compute_ifftn(grad_wall_x_grad_c, out=None, size=c_device.size()), filter=filter)
+    # term1 = - kappa * grad_wall_x_grad_c[0]
+
+    # term2 = -np.sqrt(2*kappa*A) * np.cos(theta) * compute_fftn(norm_grad_wall_device*inv_wall_device * torch.abs(c_device*(1-c_device)), filter=filter)
+    # term2 = -compute_fftn(np.sqrt(2*kappa*A) * np.cos(theta) * norm_grad_wall_device * torch.abs(c_device*(1-c_device)), filter=filter)
+    # compute_fftn(np.sqrt(2*kappa*A) * np.cos(theta) * norm_grad_wall_device * torch.abs(c_device*(1-c_device)), filter=filter, out=neumann_bc_device_fft)
+
+    # out.copy_(g_device_fft - kappa * grad_wall_x_grad_c_device_fft[0] - neumann_bc_device_fft)
+    out.copy_(g_device_fft - kappa * grad_wall_x_grad_c_device_fft[0] - neumann_bc_device_fft)
+    # compute_fftn(g_device - kappa * temp_device - np.sqrt(2*kappa*A) * np.cos(theta) * torch.abs(c_device*(1-c_device))*norm_grad_wall_device, out=out, filter=filter)
+
+
+def compute_mu_fft_SBM2(out, c_device, c_device_fft, grad_c_device,g_device, wall_device, inv_wall_device, norm_grad_wall_device, params, jk, filter=None):
+    A, kappa, theta = params
+
+    # term1 = g_device
+    # term2 = - kappa*wall^-1 * div(wall * grad(c))
+    # grad_wall_x_grad_c = jk[0] * compute_fftn(wall_device * compute_ifftn(jk[0]*c_device_fft, out=None, size=c_device.size()), filter=filter) \
+    #                     + jk[1] * compute_fftn(wall_device * compute_ifftn(jk[1]*c_device_fft, out=None, size=c_device.size()))
+    # if c_device.ndim > 2:
+    #     grad_wall_x_grad_c.add_(jk[2] * compute_fftn(wall_device * compute_ifftn(jk[2]*c_device_fft, out=None, size=c_device.size()), filter=filter))
+    
+    div_wall_x_grad_c = jk[0] * compute_fftn(wall_device * grad_c_device[0], filter=filter) \
+                        + jk[1] * compute_fftn(wall_device * grad_c_device[1], filter=filter)
+    if c_device.ndim > 2:
+        div_wall_x_grad_c.add_(jk[2] * compute_fftn(wall_device * grad_c_device[2], filter=filter))
+
+    term2 = -kappa * compute_ifftn(div_wall_x_grad_c, out=None, size=c_device.size())
+
+    # term3 = -sqrt(2*kappa * f_0) * cos(theta) * norm_grad_wall*wall^-1
+    term3 = -np.sqrt(2 * kappa * A) * torch.abs(c_device * (1-c_device)) * np.cos(theta) * norm_grad_wall_device
+
+    compute_fftn(wall_device*g_device*inv_wall_device + term2*inv_wall_device + term3*inv_wall_device, out=out, filter=filter)
+
+# the last one hopefully
+def compute_mu_fft_SBM3(out, c_device, c_device_fft, g_device, wall_device, inv_wall_device, norm_grad_wall_device, params, jk, filter=None):
+    """
+    Compute the mu_hat term in Fourier space (chemical potential in Fourier space)
+    note: mu = g + kappa/wall * grad(wall * grad(c)) - sqrt(2*kappa*f_0) * cos(theta) * norm(grad(wall))/wall
+    """
+    A, kappa, theta = params
+    # term 1 = df_0/dc = g_device
+    # term 2 = -kappa/wall * grad(wall * grad(c))
+    # term 3 = -sqrt(2*kappa * f_0) * cos(theta) * norm(grad(wall))/wall
+    # 1/wall = inv_wall_device
+
+    # term 2
+    wall_x_grad_c1_device_fft = compute_fftn(wall_device*compute_ifftn(jk[0]*c_device_fft, out=None, size=c_device.size()), out=None, filter=filter)
+    wall_x_grad_c2_device_fft = compute_fftn(wall_device*compute_ifftn(jk[1]*c_device_fft, out=None, size=c_device.size()), out=None, filter=filter)
+    if c_device.ndim > 2:
+        wall_x_grad_c3_device_fft = compute_fftn(wall_device*compute_ifftn(jk[2]*c_device_fft, out=None, size=c_device.size()), out=None, filter=filter)
+    grad_wall_x_grad_c_device_fft = jk[0] * wall_x_grad_c1_device_fft + jk[1] * wall_x_grad_c2_device_fft
+    if c_device.ndim > 2:
+        grad_wall_x_grad_c_device_fft.add_(jk[2] * wall_x_grad_c3_device_fft)
+
+    term2 = compute_ifftn(grad_wall_x_grad_c_device_fft, out=None, size=c_device.size())
+
+    # term 3
+    term3 = -np.sqrt(2 * kappa * A) * torch.abs(c_device * (1-c_device)) * np.cos(theta) * norm_grad_wall_device
+
+    compute_fftn(g_device + term2*inv_wall_device + term3*inv_wall_device, out=out, filter=filter)
 
 
 def compute_mu_fft_bis(out, c_device, c_device_fft, 
@@ -86,9 +161,12 @@ def compute_mu_fft_bis(out, c_device, c_device_fft,
                        grad_indic_device, grad_indic_norm_device, low_pass_filter,
                        kappa, k, k2, theta):
     # contact angle=pi/2
-    grad_c1_device = torch.fft.ifftn(1j*k[0]*c_device_fft, dim=(0, 1, 2)).real
-    grad_c2_device = torch.fft.ifftn(1j*k[1]*c_device_fft, dim=(0, 1, 2)).real
-    grad_c3_device = torch.fft.ifftn(1j*k[2]*c_device_fft, dim=(0, 1, 2)).real
+    # grad_c1_device = torch.fft.ifftn(1j*k[0]*c_device_fft, dim=(0, 1, 2)).real
+    # grad_c2_device = torch.fft.ifftn(1j*k[1]*c_device_fft, dim=(0, 1, 2)).real
+    # grad_c3_device = torch.fft.ifftn(1j*k[2]*c_device_fft, dim=(0, 1, 2)).real
+    grad_c1_device = compute_ifftn(1j*k[0]*c_device_fft, out=None, size=c_device.size())
+    grad_c2_device = compute_ifftn(1j*k[1]*c_device_fft, out=None, size=c_device.size())
+    grad_c3_device = compute_ifftn(1j*k[2]*c_device_fft, out=None, size=c_device.size())
 
     compute_fftn(grad_c1_device*grad_indic_device[0] + grad_c2_device*grad_indic_device[1] + grad_c3_device*grad_indic_device[2], out=flux_c_device_fft, filter=low_pass_filter)
     compute_fftn(c_device*(1-c_device)/(np.sqrt(2*kappa)) * grad_indic_norm_device * np.cos(theta), out=bc_device_fft, filter=low_pass_filter)
@@ -147,7 +225,7 @@ def compute_flux_fft(out, grad_mu_device, phi_device, low_pass_filter=None):
 
 
 #def compute_euler_timestep(out:torch.Tensor, flux_device_fft:"list[torch.Tensor]", jk:"list[torch.Tensor]", k4:torch.Tensor, params:"list[float]"):
-def compute_euler_timestep(out, flux_device_fft, k, k4, params):
+def compute_euler_timestep(out, flux_device_fft, jk, k4, params, inv_wall_device=None, filter=None):
     """
     Solve the Cahn-Hilliard equation in Fourier space
 
@@ -163,12 +241,19 @@ def compute_euler_timestep(out, flux_device_fft, k, k4, params):
     :param alpha: float, the stability parameter
     :param dt: float, the time step
     """
+    SBM = False
     kappa, alpha, dt = params
     denominator = 1.0 + alpha * dt * kappa * k4
+    if inv_wall_device is not None and SBM:
+        dcdt_x_dt = inv_wall_device * compute_ifftn(dt*(jk[0]*flux_device_fft[0] + jk[1]*flux_device_fft[1] + jk[2]*flux_device_fft[2])) if len(jk) > 2 else inv_wall_device * compute_ifftn(dt*(jk[0]*flux_device_fft[0] + jk[1]*flux_device_fft[1]))
+        dcdt_x_dt_fft = compute_fftn(dcdt_x_dt, out=None, filter=filter)
+        out.add_(dcdt_x_dt_fft.div_(denominator))
+        return
+                                                    
     if out.ndim > 2:
-        out.add_(1j*dt*(k[0]*flux_device_fft[0] + k[1]*flux_device_fft[1] + k[2]*flux_device_fft[2]).div_(denominator))
+        out.add_(dt*(jk[0]*flux_device_fft[0] + jk[1]*flux_device_fft[1] + jk[2]*flux_device_fft[2]).div_(denominator))
     else:
-        out.add_(1j*dt*(k[0]*flux_device_fft[0] + k[1]*flux_device_fft[1]).div_(denominator))
+        out.add_(dt*(jk[0]*flux_device_fft[0] + jk[1]*flux_device_fft[1]).div_(denominator))
     
 
 '''

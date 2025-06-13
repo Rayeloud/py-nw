@@ -1,0 +1,225 @@
+In this section, the results of the phase-field simulations for the case of free-standing nanowires in two configurations, single free-standing nanowire and a junction of two free-standing nanowires. First, the choices of the mesh size and the dimensions of the computational box are discussed.
+
+\subsection{Sensitivity to numerical parameters}
+To assess the sensitivity of the simulation results to numerical parameters, a series of tests are conducted by varying the mesh size and the dimensions of the computational domain. One should seek a computational domain sufficiently large such that the method intrinsic boundary condition doesn't influence the results. The simulation are performed on a computational box of dimensions given by $L_x\times L_y\times L_z$, with $L_x=L_y=L_{box}$ the smallest dimension of the box, with a mesh size $\Delta x=0.5$ for a finite nanowire of radius $R$ and length $L$. The breakup time $t_b$ is measured for different values of $L_{box}$, $L^*$ and $R$. The results are presented in \autoref{fig:3-mesh-sensitivity}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.7\textwidth]{chap3/3-tb_box.pdf}
+    \caption{Breakup time $t_b/T^*$ with respect to the smallest dimension of the computational box $L_{box} / R$ for different values of the refinement factor $L^*/\Delta x$.}
+    \label{fig:3-mesh-sensitivity}
+\end{figure}
+
+The computational box size has a significant impact on the accuracy of the simulation results. The breakup time $t_b$ converges to a constant value when the box is sufficiently large as to negates the effect of the periodic boundary condition. However, the computational cost increases with the square of the box smallest dimension, i.e. $L_{min}$ and with the cube of the mesh size $\Delta x$. 
+Thus a tradeoff between numerical accuracy and computational cost is necessary. The computational box size and mesh size are chosen such that there is a good balance between both constraints.
+Fort the the rest of the thesis, the computational box size is set to $L_{box}\approx 13.3 R$, with $R$ the characteristic dimension of the considered composition field, i.e. the radius of the nanowire. The spatial refinement factor $\rho$ is set to $\rho=4$ which corresponds to $\Delta x=0.5$ and $L^*=2.0$. The temporal refinement $\omega$ is set to $\omega=0.1$. As previously mentioned in \autoref{chap:2-methodology}, further temporal refinement does not provide significant increase in accuracy.
+
+\subsection{Single free-standing nanowire}
+For the case of a single free-standing nanowire, two configurations are considered, the infinitely long and finite nanowire configurations. The goal is to perform phase-field simulations for different combinations of the characteristic quantities and the independent geometrical parameters, the initial radius $R$ and the length of the nanowire $L$. The functional dependencies of both the breakup time $t_b$ and the wavelength of the instability $\lambda$ writes,
+
+\begin{equation}
+    t_{b} = f(R, L; L^*, T^*, E^*) \quad \text{and} \quad \lambda = g(R, L; L^*, T^*, E^*)\ .
+\end{equation}
+
+Numerical experiments reveals that both the breakup time $t_b$ and the wavelength of the instability $\lambda$ are independent of the characteristic energy $E^*$. This result is presented in \autoref{fig:3-morph-energy-dependence} where the total free energy of the system is plotted with respect to time for different values of $E^*$ and constant $L^*$ and $T^*$. This result can also be obtained by inspecting the Cahn-Hilliard equation with parameters $\epsilon\kappa$, $\epsilon w$ and $M_0/\epsilon$ with $\epsilon$ a scaling factor. Different values of $\epsilon$ yields different values of $E^*$ while $L^*$ and $T^*$ remain identical. Substituting the parameters in the Cahn-Hilliard equation yields,
+\begin{equation}
+    \frac{\partial c}{\partial t} = \nabla \cdot \left[ M_0/\epsilon \nabla \left( \epsilon w g'(c) - \epsilon \kappa \Delta c \right) \right]\ .
+\end{equation}
+Thus, for any $\epsilon$, the rate of change of $c$ remain the same. This further confirms that $t_b$ and $\lambda$ are independent of the characteristic energy $E^*$.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.7\textwidth]{chap3/3-dynamics_vs_e_star.pdf}
+    \caption{Total free energy of the system with respect to time for different characteristic energy values $E^*$ for constant $L^*$ and $T^*$. The total free energy $\mathcal{F}$ is not scaled to the characteristic energy $E^*$ for the sake of readability. The dynamics of the system remain the same for different characteristic energy values. suggesting that both the breakup time $t_b$ and the wavelength of the instability $\lambda$ are independent of $E^*$.}
+    \label{fig:3-morph-energy-dependence}
+\end{figure}
+Additional numerical experiments reveals that $\lambda$ is independent of $T^*$ as predicted by Mao et al.~\cite{MaoDemkowicz2021} for surface-driven plate retraction.\\
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=.5\textwidth]{example-image}
+%     \caption{Wavelength of the instability $\lambda$ with respect to time for different characteristic time values $T^*$ for constant $L^*$, $E^*$, $R$ and $L$. This suggests that the wavelength of the instability is independent of the characteristic time value. This suggests that the characteristic time acts as a time scale for the system.}
+%     \label{fig:3-morph-time-dependence}
+% \end{figure}
+The functional dependencies of $t_b$ and $\lambda$ can now be obtained by considering their independent parameters and their dimensionally independent subset of parameters. Buckingham--$\pi$ theorem leads to the following relations,
+\begin{equation}
+    \frac{t_b}{T^*} = F\left(\frac{R}{L^*}, \frac{L}{L^*}\right) \quad \text{and} \quad \frac{\lambda}{L^*} = G\left(\frac{R}{L^*}, \frac{L}{L^*}\right)\ ,
+\end{equation}
+or similarly,
+\begin{equation}
+    \frac{t_b}{T^*} = F\left(\frac{R}{L^*}, \frac{L}{R}\right) \quad \text{and} \quad \frac{\lambda}{L^*} = G\left(\frac{R}{L^*}, \frac{L}{R}\right)\ ,
+\end{equation}
+with $L/R$ the aspect-ratio $\Lambda$ of the nanowire \cite{JiuSuganuma2016,AmosBhattacharyaNestlerAnkit2018,AmosMushongeraMittnachtNestler2018}. However, for the sake of clarity the inverse aspect ratio $\Lambda$ is preferred as it naturally vanishes in the infinitely long limit.
+\subsubsection{Growth rate dispersion relation $\sigma$}
+The growth rate dispersion relation $\sigma$ is evaluated by performing phase-field simulations of infinitely long free-standing nanowire under a sinusoidal perturbation of the initial radius for two different initial perturbation amplitudes $\epsilon$. The results are reported in \autoref{fig:3-disp-sim}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{chap3/3-km.pdf}
+    \caption{Estimated growth rate $\tilde{\sigma}=T^*/t_b$ with respect to the radius normalized wavenumber $\tilde{k}$ squared. A least squares fit of the data reveals a quadratic relationship in $\tilde{k}^2$ as predicted theoretically. The wavenumber associated to the maximum growth rate varies with the initial perturbation amplitude $\epsilon$.}
+    \label{fig:3-disp-sim}
+\end{figure}
+
+The maximally growing wavenumber $k_m$ is estimated to be around $k_m \approx 0.7542 R^{-1}$ corresponding to a wavelength of $\lambda_m \approx 8.33 R$. This relationship is reported in \autoref{fig:3-lambda-radius-dependence} and is taken as the relationship for infinitely long nanowires $\Lambda=\infty$. Additional numerical experiments reveal that, under a stochastic perturbation, the same relationship is observed for the wavelength of the instability, highlighting the wavenumber selection mechanism of the instability growth. A comparison of the morphological transformation between the sinusoidal and stochastic perturbations is presented in \autoref{fig:3-morph-evolution-infty}.
+
+\subsubsection{Dependence on the initial radius $R/L^*$}
+The functional dependencies being established, both the breakup time $t_b/T^*$ and the wavelength of the instability $\lambda/L^*$ can be studied with respect to the initial radius $R/L^*$. The growth rate dispersion relation in \autoref{fig:3-disp-sim} reveals that the breakup time $t_b/T^*$ of infinitely long nanowires is linked to the initial radius $R/L^*$ as a power law. In addition, the breakup time is influenced by the initial amplitude and nature of the perturbation.
+The breakup time $t_b/T^*$ is measured by performing phase-field simulations of finite length nanowires with different initial radii $R/L^*$ and aspect ratios $\Lambda/L^*$. The results are presented in \autoref{fig:3-morph-radius-dependence}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{chap3/3-tb_rl.pdf}
+    \caption{Breakup time $t_b/T^*$ with respect to the initial radius $R/L^*$ for different values of the aspect ratio $\Lambda$. A least squares fit is performed revealing a power law relationship between the breakup time and the initial radius. The breakup time appears to be independent of the aspect ratio $\Lambda$ provided that it is sufficiently large, i.e. $\Lambda \geq \Lambda_c$. The same power law is observed for $\Lambda=\infty$ with a dependence on the initial perturbation amplitude $\epsilon$. For stochastic perturbations, the amplitude needs to be sufficiently large to observe the onset of ovulation.}
+    \label{fig:3-morph-radius-dependence}
+\end{figure}
+A least squares fit of the breakup time $t_b/T^*$ reveals a power law dependance on the initial radius $R/L^*$,
+\begin{equation} 
+    \frac{t_b}{T^*} = \tau_\Lambda \left(\frac{R}{L^*}\right)^{4.16}\ ,
+\end{equation}
+with $\tau_\Lambda \approx 292.94$ the characteristic breakup time, approximately constant for all aspect ratio $\Lambda$. The characteristic breakup time is found to be similar for the case of infinitely long nanowires albeit a contribution of the amplitude $\epsilon$. This characteristic breakup time is therefore referred to as $\tau$. For the case of finite length nanowires, the breakup dynamics were found to be insensible to small fluctuation in the composition field.
+The dependence to the aspect ratio $\Lambda$ is further investigated in the next section\\
+Additional numerical experiments are performed on the pentagonal cross-section nanowire in \autoref{fig:3-shape-dependence-compare}. The breakup time scaling law is found to be similar to the circular cross-section nanowire albeit with a smaller characteristic breakup time. 
+
+The wavelength of the instability $\lambda/L^*$ is also measured as the nanodots interdistance as figured in both \autoref{fig:3-morph-evolution-infty} and \autoref{fig:3-morph-evolution-aspect}. The measurements are presented in \autoref{fig:3-lambda-radius-dependence}. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{chap3/3-lambda_rl.pdf}
+    \caption{Wavelength of the instability $\lambda/L^*$ with respect to the initial radius $R/L^*$ for different values of the length $L/L^*$. The wavelength $\lambda/L^*$ is found to be independent on the aspect ratio $\Lambda$ provided that it is sufficiently large, i.e. $\Lambda \geq \Lambda_c$. The wavelength associated to the maximum growth rate is taken from the growth rate dispersion relation. Nichols and Mullins \cite{NicholsMullins1965} relationship between $\lambda/L^*$ and $R/L^*$ is plotted as a means for comparison. The instability wavelength is found to be close to the one predicted by Nichols and Mullins.}
+    \label{fig:3-lambda-radius-dependence}
+\end{figure}
+
+The wavelength of the instability $\lambda/L^*$ is found to follow a linear relationship with the initial radius $R/L^*$ for both infinitely long and finite nanowires. In addition, the numerical results finds the wavelength of finite nanowires to be smaller than for infinitely long nanowires, $\lambda \approx 6.47 R$ whereas for infinitely long nanowires $\lambda \approx 8.33 R$.
+
+\subsubsection{Dependence on the aspect-ratio $R/L$}
+%This result can also be obtained by inspecting the Cahn-Hilliard equation with $\kappa=\kappa*\epsilon$, $w=w*\epsilon$ and $M_0 = M_0/\epsilon$ with $\eps$ a scaling factor. For different values of $\epsilon$, both the characteristic length $L^*$ and time $T^*$ remain constant while $E^*$ varies.
+The effect of the aspect ratio $\Lambda$ on the morphological evolution is studied. Following the same approach as for the infinitely long case, the functional dependencies of both the breakup time $t_b$ and the wavelength of the instability $\lambda$ can be studied with respect to the aspect ratio $R/L$ for different values of the initial radius $R/L^*$. As revealed in the radius dependence section, both the breakup time and wavelength of the instability are found to be independent to the aspect ratio. However, numerical experiments reveals an aspect ratio threshold $\Lambda_c$ for which the onset of ovulation cannot occur and the nanowire retracts to a sphere as shown in \autoref{fig:3-morph-evolution-aspect}.
+As can be seen in \autoref{fig:3-morph-aspect-dependence}, the breakup time $t_b/T^*$ remains constant for all aspect ratios $\Lambda > \Lambda_c$, with $\Lambda_c$ the critical aspect ratio under which the retraction of the nanowire length is too small for the onset of ovulation to lead to breakup. Both the breakup time $t_b$ and the nanodot spacing $\lambda$ are found to be independent of the initial perturbation.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{chap3/3-tb_aspect.pdf}
+    \caption{Breakup time $t_b$ with respect to the inverse of the aspect ratio $\Lambda^{-1}$. The breakup time is constant across all $\Lambda$ until reaching a threshold value $\Lambda_c$. For $\Lambda < \Lambda_c$, no breakup is observed.}
+    \label{fig:3-morph-aspect-dependence}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{chap3/3-comparison-pentagonal.png}
+    \caption{Snapshots of the morphological evolution of a (a) circular (b) pentagonal cross-section nanowire with $R/L^*=3$ and $\Lambda=60$. The evolution of (c) the driving force $\Gamma$ (d) the total free energy $\mathcal{F}$ during the transformation. In (e), cross-sections of the pentagonal nanowire during the initial stages of the transformation. The breakup occurs faster for the pentagonal cross-section.}
+    \label{fig:3-shape-dependence-compare}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.9\textwidth]{chap3/3-comparison-aspect.png}
+    \caption{Snapshots of the morphological evolution of a nanowire of (a) $\Lambda=60$ (b) $\Lambda=10$. Above $\Lambda_c$, the nanowire free ends bulge out and retract. As the retraction progresses, necking intensifies at the free ends leading to the formation of a nanodot. Below $\Lambda_c$, the length is not sufficient to develop sufficient necking at the free ends.}
+    \label{fig:3-morph-evolution-aspect}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.9\textwidth]{chap3/3-comparison-infinite.png}
+    \caption{Snapshots of the morphological evolution of a nanowire with an initial (a) sinusoidal ($k=k_m$, $\epsilon=10^{-2}$) (b) stochastic ($\epsilon=0.5$) perturbation. The nanowire starts from a textured morphology then smoothes out as the dynamics progresses until equally spaced bulges grow, leading to necking and eventually the breakup of the nanowire.}
+    \label{fig:3-morph-evolution-infty}
+\end{figure}
+
+\subsection{Junction of two free-standing nanowires}
+Finally, for the case of a junction of two free-standing nanowires, the same method is applied to characterize the functional dependency of the breakup time $t_b$. The wavelength $\lambda$ is not considered as the stability of the junction is, in this case, the most relevant factor. In this context, two characteristic time are studied, $t_{b,1}$ and $t_{b,2}$ corresponding to the break up time of the bottom and top nanowire respectively. The functional dependencies thus writes,
+\begin{equation}
+    t_{b,i} = h_i(R_1, R_2, L; L^*, T^*, E^*)\ ,
+\end{equation}
+with $i=1, 2$ for the bottom and top nanowire respectively. The relative orientation is neglected in this case as it was already studied by Roy et al. \cite{RoyVarmaGururajan2021}. The relative orientation considered in the study is $\theta=90^\circ$ since it leads to the fastest breakup of the junction.\\
+Similarly to the case of a single free-standing nanowire, the breakup time $t_{b,i}$ is found to be independent of the characteristic energy $E^*$ values. The functional dependencies of the breakup time $t_{b,i}$ can then be expressed as,
+\begin{equation}
+    \frac{t_{b,i}}{T^*} = H_i\left(\frac{R_1}{L^*}, \frac{R_2}{R_1}\right)\ ,
+\end{equation}
+with $R_1/R_2$ the relative aspect ratio.
+
+\subsubsection{Dependence on the initial radius $R_1/L^*$}
+Numerical simulations are performed by varying the initial radius $R_1/L^*$ for constant values of the relative aspect ratio $R_1/R_2$. Both breakup times are measured and reported in \autoref{fig:3-morph-junction-dependence}. Numerical fits of the data reveal a power law relationship between both breakup times and the iniital radius $R_1/L^*$,
+\begin{equation}
+    \frac{t_{b,i}}{T^*} = \tau_{i}\left(r\right) \left(\frac{R_1}{L^*}\right)^{3.921}\ ,
+\end{equation}
+with $\tau_{i}(R_1/R_2)$ the characteristic breakup time of the bottom ($i=1$) and top ($i=2$) nanowire for a relative aspect ratio $r=R_1/R_2$. The characteristic breakup time $\tau_i(r)$ is evaluated in the next section. The power law relationship reveals a quartic dependence of the breakup time on the initial radius $R_1/L^*$, similar to the case of a single free-standing nanowire. 
+
+\subsubsection{Dependence on the relative aspect-ratio $R_1/R_2$}
+Similarly, the functional dependencies of the breakup time $t_{b,i}$ can be studied with respect to the relative aspect ratio $R_1/R_2$ for different values of the initial radius $R_1/L^*$. The results are reported in \autoref{fig:3-morph-junction-dependence}. Numerical fits also reveal a power law relationship between the breakup time and the relative aspect ratio. Combining both relationships leads to the following,
+\begin{equation}
+    \frac{t_{b,1}}{T^*} \approx \tau_j \left(\frac{R_1}{L^*}\right)^{3.921} \left(\frac{R_1}{R_2}\right)^{0.74} \quad\text{and}\quad \frac{t_{b,2}}{T^*} \approx \tau_j \left(\frac{R_1}{L^*}\right)^{3.921} \left(\frac{R_1}{R_2}\right)^{-4.63}\ ,
+\end{equation}
+with $\tau_j \approx 263.58$, which is close to the characteristic breakup time of a single free-standing nanowire $\tau \approx 292.94$.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{chap3/3-tb1_junction_r1r2.pdf}
+        \caption{}
+        % \label{fig:3-morph-junction-dependence1}
+    \end{subfigure}%
+    \begin{subfigure}{0.5\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{chap3/3-tb2_junction_r1r2.pdf}
+        \caption{}
+        % \label{fig:3-morph-junction-dependence2}
+    \end{subfigure}
+    \caption{Breakup time of (a) the bottom nanowire $t_{b,1 }$ (b) the top nanowire $t_{b,2}$ with respect to the relative aspect ratio $R_1/R_2$ for different values of the initial radius $R_1/L^*$. Numerical fits of the data reveal a power law relationship between the breakup time, the radius and the relative aspect ratio.}
+    \label{fig:3-morph-junction-dependence}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.9\textwidth]{chap3/3-junction-comparison.png}
+    \caption{Comparison of the morphological evolution of different junctions of two free-standing nanowires.(a) Driving force $\Gamma$ with respect to time. Snapshots of the morphological evolution of $R_1/L^*=3$ and (b) $R_1/R_2=1$ (c) $R_1/R_2=0.86$ (d) $R_1/R_2=1.0$ with a pentagonal cross-section.}
+    \label{fig:3-morph-junction-dependence3}
+\end{figure}
+
+\section{Discussion}
+%The simulation results align well with the classical theory of surface-diffusion-driven breakup (Nichols and Mullins). The measured most unstable wavelength $\lambda_m \approx 8.33R$ matches the analytical prediction $2\pi\sqrt{2}R$. For finite wires, $\lambda \approx 6R$, consistent with findings for solids of revolution.
+%Breakup time scales as $t_b \sim R^4$, confirming the inverse fourth-power growth rate. These results confirm the applicability of Nichols and Mullins' theory to nanowire breakups.
+%In finite wires, perturbations propagate from the retracted ends, initiating bulges which evolve into necks and break into nanodots. This mechanism repeats until the remaining segment is too short to sustain instability. The observed insensitivity to perturbation type suggests two breakup regimes: perturbation-driven and retraction-driven.
+%The critical aspect ratio $\Lambda_c$ marks the point where perturbation-induced necking overcomes retraction-induced smoothing. Below this, wires retract without breakup. These results match prior studies \cite{NicholsMullins1965, AmosBhattacharyaNestlerAnkit2018}.
+%Finally, using mobility $M = D_s / (d^2f_0/dc^2)$ introduces a temperature-dependent stability criterion. Since $d^2f_0/dc^2$ decreases with temperature, so does the instability growth rate. This explains the presence of a thermal threshold for nanowire breakup.
+%The results obtained for single nanowires show strong consistency with the classical framework established by Nichols and Mullins for the capillarity-driven evolution of solids of revolution. The most unstable wavelength measured in the simulations for infinitely long nanowires, λm≈8.33Rλm​≈8.33R, matches the analytical prediction 2π2R2π2
+%​R, validating the spectral phase-field approach used in this work. Furthermore, for finite-length nanowires, the distance between resulting nanodots is observed to be smaller than the maximally growing wavelength, as originally reported by Nichols and Mullins. This distinction is attributed to the boundary effects that constrain instability development, resulting in a selected wavelength that deviates from the infinite case.
+The results obtained from the phase-field simulations of single free-standing nanowires aligns well with the classical framework made by Nichols and Mullins \cite{NicholsMullins1965,Nichols1976} for the capillarity-driven evolution of solids of revolution. The maximally growing wavelength measured in the simulations of infinitely long nanowires $\lambda_m$ is found to be approximately $8.33 R$ which closely matches the analytical prediction of $\lambda_m=2\pi\sqrt{2}R\approx 8.88 R$. In addition, for the finite-length nanowires, the measured wavelength, i.e. the distance between resulting nanodots, is observed to be smaller than the maximally growing wavelength. This result is also consistent with the findings of Nichols \cite{Nichols1976} where the distance between the growing bulges is found to be approximately equal to the critical wavelength, i.e. $\lambda \approx \lambda_m/\sqrt{2}$. This result can be attributed to the interplay between retraction and contra-diffusion \cite{Nichols1976,AmosMushongeraMittnachtNestler2018}. As shown in \autoref{fig:3-morph-evolution-aspect}, the central region of the nanowire acts as the source of mass transfer while the free ends acts as sinks. The intensity is therefore found to be dependent on the difference in curvature, indicated by the chemical potential $\mu$ in \autoref{fig:3-morph-evolution-aspect}, between the source and the sinks. The free ends grow radially while the source shrinks, leading to the formation of a neck and subsequent breakup. The wavelength of instability is therefore found to be the smallest possible wavelength that allows instabilities to develop, i.e. the critical wavelength $\lambda_c$. However, for increasingly large nanowires, one would expect the wavelength to approach the maximally growing wavelength $\lambda_m$. However, this is not the case as explained by Nichols \cite{Nichols1976}. As the rod gets longer, the formation of additional bulges becomes possible, leading to a stabilizing effect. This effect thus leads to the formation of an additional nanodot, and increasingly more nanodots as the length increases. The observation further confirms the relevance of the phase-field approach to model the morphological evolution of nanowires. In addition, the presence of a critical aspect ratio is explained by the same arguments.
+
+% minipage to wrap text around figure
+A key observation in the present study is the identification of two breakup mechanisms, perturbation-driven and free-end-driven breakup. The latter, as reported in \autoref{fig:3-morph-radius-dependence}, leads to a more rapid evolution, with the breakup initiating from the ends of the nanowire, as opposed to the perturbation-driven, where the initial amplitude of the perturbation is found to be a `limiting factor'. The morphological transformation of an infinitely long nanowire under a stochastic perturbation of amplitude equal to $0.5R$ shown in \autoref{fig:3-morph-evolution-infty} illustrates this argument. The amplitude, while being large enough to be significantly noticeable, leads to breakup times larger than the ones observed for finite length nanowires. This difference in dynamics further motivates the importance of considering finite-length rods to model the morphological evolution of nanowires. This is further supported by SEM images revealing the formation of nanodots emerging from the nanowire ends.
+%A key observation in the present study is the identification of two breakup mechanisms: perturbation-driven and free-end-driven. The latter leads to a more rapid evolution, with breakup initiating from the ends of the nanowire, as opposed to the bulk amplification of stochastic perturbations. This difference in dynamics emphasizes the importance of considering finite-length rods, as the dominant morphological changes are governed by boundary retraction. This observation is consistent with experimental findings, such as those reported by Balty et al., where SEM images clearly show nanodot formation emerging from the nanowire ends. The presence of a critical aspect ratio ΛcΛc​, below which breakup is suppressed and the wire simply retracts, also aligns with the theoretical and numerical predictions from both Amos et al. and Nichols and Mullins. Although an exact value of ΛcΛc​ is not provided here, it is found to be on the order of the most unstable wavelength, supporting the interpretation that sufficient length is required for necking to dominate over capillary retraction.
+As for the breakup time scaling law, the quartic dependence on the initial radius $R$ is found to be consistent with the theoretical predictions of Nichols and Mullins \cite{NicholsMullins1965,Nichols1976}, of McCallum et al. \cite{McCallumVoorheesMiksisDavisWong1996} and Balty et al. \cite{BaltyBaretSilhanekNguyen2024}. Furthermore the expression can be expanded in terms of the physical parameters of the Cahn-Hilliard equation as follows,
+\begin{align}
+    \frac{t_b}{T^*} &\approx \tau \left(\frac{R}{L^*}\right)^4\\
+    \implies t_b &= \tau \left(\frac{R}{L^*}\right)^4 T^*
+\end{align}
+The characteristic time $T^*$ can be expressed as,
+\begin{align}
+    T^* &= \frac{\kappa}{w^2 M_0} = \frac{\kappa}{w D_s} g''(c) \\
+    &= \frac{\kappa}{\sqrt{w}^2 D_s} \frac{\sqrt{\kappa}}{\sqrt{\kappa}} g''(c)\\
+    &= \frac{\kappa L^*}{\gamma D_s} g''(c)\ ,
+\end{align}
+with $D_s$ the surface diffusivity, $g''(c)$ the curvature of the homogeneous free energy $f_0(c)=wg(c)$ and $\gamma$ the characteristic surface energy.\\
+Injecting the above relationships from \autoref{eq:3-charac} in the expression of the breakup time $t_b$ leads to the following expression,
+\begin{align}
+    t_b = \tau \frac{\kappa R^4}{\gamma D_s {L^*}^3} g''(c)\ .
+\end{align}
+As recalled in \autoref{chap:1-sota}, the homogenous free energy $f_0$ is a function of the temperature $T$ and its curvature is found to vanish at the critical temperature $T_c$. Thus, while recovering the expression found by Balty et al. \cite{BaltyBaretSilhanekNguyen2024}, the present work introduces a temperature-based criterion for the onset of the instability, where the curvature of the homogeneous free energy $g''(c)$ vanishes at the critical temperature $T_c$ \cite{Cahn1959,LeeHuhJeongShinYunKim2014}.
+%The power-law scaling of breakup time tb∝R4tb​∝R4 observed in this work is in agreement with earlier studies by McCallum et al., Balty et al., and the foundational theory of Nichols and Mullins. The expression can be further expanded in terms of the physical parameters of the Cahn–Hilliard model, incorporating mobility MM, gradient energy coefficient κκ, and the curvature of the homogeneous free energy f0f0​. Notably, the use of a composition-dependent mobility M=Ds/(d2f0/dc2)M=Ds​/(d2f0​/dc2) introduces a temperature-dependent growth rate, where d2f0/dc2d2f0​/dc2 vanishes at the critical temperature. This feature offers a compelling explanation for the temperature threshold observed in experiments, such as the spheroidization of silver nanowires at elevated temperatures.
+
+The analysis of the nanowire morphology reveals that the initial morphology can lead to accelerated breakup kinetics. This further motivates the need of future modeling efforts to include the correct polycrystalline structure of the nanowires. The accelerated kinetics in pentagonal cross-section nanowires can be attributed to the increased curvature gradients at each edge. Nevertheless, the scaling laws remain unchanged, suggesting that the underlying physics is preserved.
+%The additional analysis of nanowires with a pentagonal cross-section reveals that the initial morphology significantly influences transformation kinetics. The faceted geometry leads to an accelerated breakup process compared to the cylindrical counterpart, likely due to increased curvature gradients and directional surface energies at the edges. Nevertheless, the fundamental scaling laws remain unchanged, suggesting that while morphology modifies the timescale of transformation, the underlying physics of the breakup mechanism is preserved. This highlights the potential of including morphological anisotropy in future modeling efforts for a more accurate description of real-world nanowire dynamics.
+
+As for the case of junctions, as previously stated, the study focused on junction with a relative orientation of $\theta=90^\circ$, which is the configuration identified by Roy et al. \cite{RoyVarmaGururajan2021} as exhibiting the fastest breakup kinetics among various relative orientations. This choice facilitates the parametric study while predicting that other angles would lead to slower kinetics without altering the underlying physical interpretation. The numerical results of the junction reveal a power-law scaling of the breakup times $t_{b,1}$ and $t_{b,2}$ with respect to the primary nanowire radius $R_1/L^*$ and the relative aspect ratio $R_1/R_2$.
+
+To minimize the risk of breakup in nanowire networks, the relative aspect ratio $R_1/R_2$ should ideally approach unity. Moreover, the behavior of the bottom nanowire, whose breakup time depends on the relative aspect ratio $R_1/R_2$, i.e. the relative size of the two branches, suggests that it can be used to estimate the breakup initiation around localized surface defects. In this context, the defect acts as a short secondary nanowire. As the relative size of the defect decreases, the breakup time increases, and eventually diverges as the size of the defect becomes increasingly negligible with respect to the primary nanowire. This observation is consistent with experimental findings where nanowire degradation can often initiate at regions of substantial local defects.
+%For the case of junctions, the present study focuses on the configuration where two nanowires intersect at a right angle, a geometry previously identified by Roy et al. as the one exhibiting the fastest breakup kinetics among various relative orientations. This choice facilitates the analysis of scaling laws while anticipating that other angles would introduce additional dependencies without altering the core breakup mechanisms. The results reveal a clear power-law scaling of the breakup times tb,1tb,1​ and tb,2tb,2​ with respect to the primary nanowire radius R1/L^* R1​/L^* and the relative radius ratio R1/R2R1​/R2​. Specifically, the breakup time for the bottom nanowire, tb,1tb,1​, increases proportionally with R1/R2R1​/R2​, whereas the breakup time for the top nanowire, tb,2tb,2​, exhibits a near-inverse quartic dependence on the same ratio. This disparity indicates that the junction's overall stability is highly sensitive to geometric asymmetry.
+%To minimize breakup risk in nanowire networks, the relative aspect ratio R1/R2R1​/R2​ should ideally approach unity, where both branches share similar geometric constraints and stress distributions. Moreover, the behavior of the bottom nanowire—whose breakup time depends only on the relative radius ratio and not on the length of the intersecting nanowire—suggests a broader applicability: the derived scaling law may also be used to predict breakup initiation around localized surface defects. In this context, the defect acts analogously to a short secondary nanowire. As the relative size of the defect decreases, the breakup time increases and eventually diverges, preventing breakup. This is consistent with experimental observations in which nanowire degradation often initiates at regions containing substantial local inhomogeneities
+
+Additionally, junctions composed of pentagonal cross-section nanowires are found to follow the same morphological transformation as their cylindrical counterparts, albeit with noticeably faster kinetics. This observation further emphasizes the significant role of faceting in the morphological evolution of nanowires. The pentagonal cross-section leads to an increased curvature gradient at the edges, accelerating the breakup process.
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=.2\textwidth]{chap3/3-nanowire-breakup.png}
+    \caption{SEM image of an AgNW with nanodots emerging from the free ends. The image is taken from Balty et al. \cite{BaltyBaretSilhanekNguyen2024}.}
+    \label{fig:3-sem-nanowire-breakup}
+\end{figure}
+%Additionally, the junctions involving pentagonal cross-section nanowires are found to follow similar morphological pathways as their cylindrical counterparts but evolve with noticeably faster kinetics. This again highlights the significant yet largely dynamic role played by faceting and morphological anisotropy. Importantly, despite these faster transformations, the underlying scaling behavior with respect to radius and geometry remains preserved, suggesting that the core breakup mechanisms are robust across different initial shapes.
+
+%A comparison with the work of Roy et al. \cite{RoyVarmaGururajan2021} reveals several important distinctions. While their study provided valuable insights into the application of the phase-field formalism to surface-enhanced diffusion, certain aspects of their numerical framework limited the robustness and generalizability of their results. 
+A comparison with the earlier work by Roy et al. reveals several distinctions. While their study provided valuable insights into the application of the phase-field formalism to surface-enhanced diffusion, certain aspects of their numerical framework limited the robustness and generalizability of their results. In particular, their use of a relatively small computational domain, coupled with physical parameters that led to a diffuse interface width larger than the nanowire radius, introduced significant boundary effects and reduced the fidelity of bulk behavior. Moreover, their methodology lacked a systematic non-dimensionalization of the governing equations and parameters, which limits the interpretability and scalability of their findings to other physical systems. In contrast, the present work is built upon a coherent non-dimensional framework, allowing the derivation of scaling laws and making the results directly transferable to a wide range of materials and experimental conditions.
+
+Additionally, their use of a sharp interface definition for the initial condition introduced numerical oscillations during the early stages of the morphological evolution, which in turn led to a mischaracterization of the breakup mechanism. Specifically, this artifact contributed to the incorrect conclusion that perturbation-driven breakup is largely independent of initial amplitude and progresses as rapidly as breakup driven by free-end retraction. The present simulations, by contrast, use a physically consistent diffuse-interface initialization, which more accurately captures the dynamics of instability growth and allows a clearer distinction between the dominant breakup regimes.

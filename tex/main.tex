@@ -9,8 +9,15 @@
 \usepackage[english]{babel}
 \usepackage{packages/sleek}
 \usepackage{packages/sleek-title}
+\addto\extrasenglish{
+    \def\chapterautorefname{Chapter}
+    \def\sectionautorefname{Section}
+    \def\subsectionautorefname{Subsection}
+    \def\subsubsectionautorefname{Subsubsection}
+}
 \usepackage{lipsum}
 \usepackage{lmodern}
+\usepackage{oplotsymbl}
 
 %%%%%%%%%%%%%%
 % Title-page %
@@ -27,13 +34,13 @@
             Prof.\ Benoît \textsc{Vanderheyden}}
 \context{\Large Master's thesis completed by Rayane \textsc{Eloudrhiri}\\
 in order to obtain the degree of Master of Science in Engineering Physics}
-\date{Academic year 2023\ --\ 2024}
+\date{Academic year 2024\ --\ 2025}
 
 %%%%%%%%%%%%%%%%
 % Bibliography %
 %%%%%%%%%%%%%%%%
 
-\addbibresource{./resources/bib/references.bib}
+\addbibresource[datatype=bibtex]{resources/bib/references.bib}
 \graphicspath{ {./resources/pdf/} }
 
 %%%%%%%%%%%%
@@ -46,31 +53,38 @@ in order to obtain the degree of Master of Science in Engineering Physics}
     \addcontentsline{toc}{chapter}{Introduction}
     \chapter*{Introduction}\label{chap:intro}
     \markboth{\textsc{INTRODUCTION}}{}
-    \input{resources/chapters/0_introduction}
+    \input{resources/chapters/introduction}
+
     \chapter{State of the art}\label{chap:1-sota}
     \input{resources/chapters/1_sota}
+
     \chapter{Methodology}\label{chap:2-methodology}
     \input{resources/chapters/2_methodology}
-    \chapter{Free-standing nanowire}\label{chap:3-results}
 
+    \addtocontents{toc}{\protect\vspace{15pt}}
+    \chapter{Free-standing nanowire}\label{chap:3-results}
     \input{resources/chapters/3_results}
+
     \chapter{Nanowire on substrate}\label{chap:4-substrate}
     \input{resources/chapters/4_substrate}
-    %\chapter{Polycristalline structure}
-    %\input{resources/chapters/5_anisotropy}
-    \addcontentsline{toc}{chapter}{Conclusion and perspectives}
-    \chapter*{Conclusion and perspectives}\label{chap:concl}
-    \input{resources/chapters/9_conclusion}
+    
+    % \addcontentsline{toc}{chapter}{Conclusion and perspectives}
+    \chapter{Conclusion and perspectives}\label{chap:concl}
+    \input{resources/chapters/conclusion}
 
+    \addcontentsline{toc}{chapter}{Declaration on AI-assisted technologies in the
+writing process}
+    \chapter*{Declaration on AI-assisted technologies in the writing process}
+    The author declares that the content of this thesis is the product of his own personal work, research and ideas, and that any use of AI-assisted technologies has been done solely for the rephrasing of text, without any contribution to the content of ideas or the structure of the thesis.
+
+    \newpage
+    % \addtocontents{toc}{\protect\vspace{15pt}}
+    % \addcontentsline{toc}{chapter}{\Large Appendix}
+    % \appendix
+    % \input{resources/chapters/__appendix}
     
     \newpage
-    \addtocontents{toc}{\protect\vspace{15pt}}
-    \addcontentsline{toc}{chapter}{\Large Appendix}
-    \appendix
-    \input{resources/chapters/__appendix}
     
-    \newpage
-    \nocite{*}
     \printbibliography
 
 \end{document}

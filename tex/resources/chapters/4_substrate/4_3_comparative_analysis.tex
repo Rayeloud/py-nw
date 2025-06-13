@@ -1,0 +1,72 @@
+In order to assess the influence of the flat substrate on the morphological instability of the nanowires, a comparative analysis is performed between the results obtained in \autoref{chap:3-results} and the results obtained in the present chapter. First, the case of a single nanowire is investigated in both the circular and pentagonal cross-section configurations. Both the breakup time $t_b$ and the wavelength of the instability $\lambda$ are studied in the same way as in \autoref{chap:3-results}. Finally, the case of a junction of two nanowires is considered with the bottom nanowire in contact with the substrate and the top nanowire free-standing.\\
+The sensitivity to numerical parameters yields similar results as in \autoref{chap:3-results} and is not repeated here. Thus the computational box is taken sufficiently large to avoid boundary effects.
+\subsection{Single nanowire on substrate}
+Following the same methodology as in \autoref{chap:3-results}, the breakup time $t_b$ and the wavelength of the instability $\lambda$ are studied for both the circular and pentagonal cross-section configurations. The results are presented in \autoref{fig:4-td-single} and \autoref{fig:4-lambda-single} respectively. In this case the influence of the presence of a substrate is quantified for both the breakup time and the wavelength of the instability. The results are compared to the free-standing case presented in \autoref{chap:3-results}. The results are only presented for the case of a finite length nanowire since the breakup dynamics are similar to experimental observations as discussed in \autoref{chap:3-results}.
+
+Numerical results show that the breakup time $t_b/T^*$ is significantly influenced by the substrate consideration while still following the same power law as in the free-standing case as figured in \autoref{fig:4-lambda-single}. 
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{chap4/4-tb_rl_theta.pdf}
+    \caption{Numerical results of the breakup time $t_b/T^*$ with respect to the initial radius $R/L^*$ for different values of the prescribed angle $\theta_B$. Numerical fits reveal a power law relationship between both quantities. The power law is found to be consistent with the free standing case albeit with a different prefactor which is dependent on the prescribed angle $\theta_B$. The results from the free-standing case are shown in black and the are consistent with the prescribed contact angle $\theta_B=180^\circ$.}
+    \label{fig:4-td-single}
+\end{figure}
+The relationship between the breakup time and the initial radius $R/L^*$ writes,
+\begin{equation}
+    t_b/T^* \approx \tau(\theta_B) (R/L^*)^{4.12}\ ,
+\end{equation}
+with $\tau(\theta_B)\approx 426.52 K(\theta)$ the characteristic breakup time with respect to the contact angle $\theta_B$.\\
+Comparing the results to the free-standing case, for the case of a prescribed contact angle $\theta_B=180^\circ$, the curve is close and consistent with the reference case. The dependence to the prescribed contact angle $\theta_B$ is highlighted through a non-linear function of $\theta_B$. An attempt to fit the numerical results is performed in \autoref{fig:4-mccallum-comparison}, where the numerical results are compared to McCallum's analytical model \cite{McCallumVoorheesMiksisDavisWong1996}.
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{chap4/4-sigma_theta.pdf}
+    \caption{Numerical fit of the relation between the prescribed angle $\theta_B$ and the maximum growth rate $\sigma_m$. The numerical results are compared to McCallum's analytical model \cite{McCallumVoorheesMiksisDavisWong1996}.}
+    \label{fig:4-mccallum-comparison}
+\end{figure}
+The numerical results are found to be consistent with the analytical model of McCallum et al. \cite{McCallumVoorheesMiksisDavisWong1996}. The normalized estimated growth rate $\tilde{\sigma}_m$ is found to have a similar sigmoid-like shape as the one predicted in their study.
+A slight discrepancy between a prescribed contact angle $\theta_B=180^\circ$ and the free-standing case is observed. The discrepancy is more apparent in \autoref{fig:4-comparison-180} where the morphological transformation of a free-standing nanowire is compared to the case of a prescribed contact angle $\theta_B=180^\circ$.
+
+The wavelength of the instability $\lambda/L^*$ is also studied using the same approach as in \autoref{chap:3-results}. The results are presented in \autoref{fig:4-td-single}. Numerical fitting of the data reveals a linear relationship between the wavelength and the initial radius $R/L^*$. In addition, the slope of the linear fit is found to be dependent on the prescribed contact angle $\theta_B$.
+The same slope is found for both the prescribed contact angle $\theta_B=180^\circ$ and the free-standing configuration, i.e. $\lambda \approx 6.47R$. For contact angles of $\theta_B=141.8^\circ$ and $108^\circ$, the wavelength is found to be $\lambda\approx 8.9 R$ and $\lambda\approx 12.3 R$ respectively. Additional numerical experiments on the pentagonal cross-section configuration with a prescribed contact angle $\theta_B=108$ yields a wavelength $\lambda\approx7.6R$. In addition, the morphological transformation is found to be slower for the pentagonal approximation.
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{chap4/4-lambda_rl_theta.pdf}
+    \caption{Numerical results of the wavelength of the instability $\lambda/L^*$ with respect the initial radius $R/L^*$ for different values of the prescribed angle $\theta_B$. Numerical fits reveal a linear relationship between both quantities. The slope is found to be dependent on the prescribed angle $\theta_B$.}
+    \label{fig:4-lambda-single}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{chap4/4-single-180.png}
+    \caption{Comparison of the morphological transformation between the free-standing model and the SBM model. (a) Free standing nanowire (b) Nanowire on substrate with a prescribed angle $\theta_B=180^\circ$. Both nanowire evolve at similar rate which further validates the SBM formalism.}
+    \label{fig:4-comparison-180}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{chap4/4-snapshot-single.png}
+    \caption{Snapshots of the morphological transformation of a single nanowire on substrate with a prescribed contact angle (a) $\theta_B=141.8^\circ$ and (b) $\theta_B=108^\circ$ (c) $\theta_B=108^\circ$ (pentagonal cross-section). This highlights the influence of the contact angle on the morphological transformation.}
+    \label{fig:4-snapshot-single}
+\end{figure}
+
+\subsection{Junction of nanowires on substrate}
+Similarly to the single nanowire case, a comparative analysis is performed on the junction of two nanowires. The results are presented by comparing snapshots of the morphological transformation at different times $t/T^*$ in \autoref{fig:4-morph-junction-dependence}. The snapshots reveals that the bottom nanowire, in contact with the substrate, breaks up at later times compared to the top nanowire. However, for the configuration with the top nanowire in contact with the substrate, the junction is found to be slightly more stable, i.e. the minimum breakup time is larger than the other configurations. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.8\textwidth]{chap4/4-snapshot-junction.png}
+    \caption{Snapshot of the morphological instability of a junction in different configurations at different stages of transformation. (a) Two substrate supported nanowires with the secondary nanowire bending around the primary one (b) A substrate supported nanowire with a free-standing nanowire ((c) pentagonal cross-section). The snapshots reveal a slight increase in the overall stability of the junction when both nanowires are in contact with the substrate. }
+    \label{fig:4-morph-junction-dependence}
+\end{figure}
+
+\section{Discussion}
+The results obtained for substrate-deposited nanowires are found to be consistent with the theoretical and numerical findings of McCallum et al. \cite{McCallumVoorheesMiksisDavisWong1996}, albeit here studied in the broader and more flexible context of the phase-field formalism. Notably, the same scaling laws identified in the free-standing case remain valid, reinforcing the relevance of initially focusing on free-standing nanowires to capture the dominant physics of breakup dynamics. The substrate acts as a stabilizing constraint by restricting the admissible modes of perturbation, which in turn slows down the evolution and leads to an observable shift in the instability wavelength.
+% The results obtained from the extended Cahn-Hilliard equation for modeling susbtrate supported nanowires are found to be consistent with the theoretical and numerical findings of McCallume et al. \cite{McCallumVoorheesMiksisDavisWong1996}, albeit here studied in the broader context of the phase-field formalism. 
+
+As shown in the free-standing simulations, the instability wavelength extracted from finite-length nanowires is close to the theoretically predicted critical wavelength \cite{Nichols1976}. When examining substrate-supported configurations, the maximally growing wavelength can similarly be estimated as a function of the prescribed contact angle $\theta_B$, and the predictions align well with the results from McCallum et al.\cite{McCallumVoorheesMiksisDavisWong1996}. 
+
+These observations echo the conclusions of Balty et al., where a reduction in the set of unstable modes due to geometric constraints leads to delayed breakup. However, it is also found that the actual spacing between nanodots in the free-standing case is consistently smaller than the maximally growing wavelength predicted by linear theory. This discrepancy persists even in more realistic geometries such as pentagonal cross-sections with $\theta_B = 108^\circ$, where the observed wavelengths remain below those measured experimentally by Langley et al. \cite{LangleyGiustiMayousseCelleBelletSimonato2013} and Balty et al. \cite{BaltyBaretSilhanekNguyen2024}.
+
+Such differences strongly support the inclusion of anisotropic effects in the model. Indeed, directional dependence of surface properties—arising from crystalline anisotropy, may substantially alter the selection of unstable modes and the breakup kinetics.
+Nevertheless, despite its limitations, the phase-field framework proves to be a powerful tool for capturing the essential features of surface-driven morphological transformations in complex nanostructures.
+
+In the case of nanowire junctions, simulations reveal that the bottom nanowire, in contact with the substrate, breaks up at significantly later times compared to its free-standing counterpart. This delayed breakup is attributed to the stabilizing influence of the substrate, which restricts available perturbation modes and slows the morphological evolution. Additional numerical experiments on approximated flexed nanowires shows an increase in breakup time. These findings suggest that mild mechanical pressing might offer a potential strategy for enhancing thermal stability during annealing of nanowire networks.
+
+It is important to note, however, that this interpretation is made in the absence of explicitly modeled mechanical strain. As previously discussed by Cahn \cite{Cahn1961}, elastic stresses can strongly influence the chemical potential and the morphological stability of the structure.

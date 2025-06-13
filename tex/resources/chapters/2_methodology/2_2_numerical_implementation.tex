@@ -1,35 +1,36 @@
-Different numerical strategies can be employed for phase-field modeling \cite{pfhub}. Here is a brief overview of different spatial discretization methods used in phase-field modeling:
+Different numerical strategies can be employed for phase-field modeling \cite{Wheeler2019}. Here is a brief overview of different spatial discretization methods used in phase-field modeling:
 \begin{itemize}
     \item Finite difference method
     \item Finite element method
     \item Finite volume method
     \item Fourier spectral method
 \end{itemize}
-Each methods has its own strength and weaknesses. In this study, the Fourier spectral method is used to solve the phase-field model considered. This method is fairly simple to implement and offer a high spatial error convergence rate. However, due to the mathematical properties of the Fourier transform, the method is limited to periodic boundary conditions and to the use of regular grids for spatial discretization. Thus, certain strategies are employed to overcome these limitations, especially the use of voxelization to represent any arbitrary shape in a regular grid.
+Each method has its own strengths and weaknesses. In this study, the Fourier spectral method is used to solve the phase-field model considered. This method is fairly simple to implement and offer a high spatial error convergence rate \cite{ChenShen1998,SircaHorvat2012,Biner2017-1}. However, due to the mathematical properties of the Fourier transform, the method is limited to periodic boundary conditions and to the use of regular grids for spatial discretization. The periodic boundary conditions are both a useful byproduct of the use of spectral methods, for example when dealing with infinite systems, and a limitation depending when no-flux conditions need to be applied on certain boundaries of the domain. Thus, certain strategies are employed to overcome these limitations, especially the use of voxelization to represent any arbitrary shape in a regular grid.
 \subsection{Fourier spectral method}
-    Recall \autoref{eq:2-ch}, expressed as,
-    \begin{equation}
-        \frac{\partial c}{\partial t} = \nabla \cdot \left( M \nabla \mu \right)
-    \end{equation}
-    The solution to this equation with the Fourier spectral method starts by taking the forward Fourier transform of both sides of the equation.
+    % Recall \autoref{eq:2-ch}, expressed as,
+    % \begin{equation}
+    %     \frac{\partial c}{\partial t} = \nabla \cdot \left( M \nabla \mu \right)
+    % \end{equation}
+    The solution to \autoref{eq:2-ch} using the Fourier spectral method starts by taking the forward Fourier transform of both sides of the equation, which leads to
     \begin{align}
         \frac{\partial \hat{c}}{\partial t} &= \Bigl\{\nabla \cdot ( M(c) \nabla \mu ) \Bigl\}_k\\
-        \implies \frac{\partial \hat{c}}{\partial t} &= j\mathbf{k} \cdot \Bigl\{ M(c) \left[j\mathbf{k} \cdot \right(\hat{g(c)} + \kappa k^2 \hat{c}\left)\right]_r \Bigl\}_k
+        \implies \frac{\partial \hat{c}}{\partial t} &= j\mathbf{k} \cdot \Bigl\{ M(c) \left[j\mathbf{k} \cdot \right(w\hat{g'(c)} + \kappa k^2 \hat{c}\left)\right]_r \Bigl\}_k\ ,
     \end{align}
-    where $\hat{c}$ is the Fourier transform of $c$, $\{\cdot\}_k$ denotes the Forward Fourier transform of the expression inside the brackets, $\left[\cdot\right]_r$  denotes the Inverse Fourier transform of the expression in the brackets, $j$ is the pure imaginary number, $\mathbf{k}$ and $k$ are the wave vector and the wave vector magnitude respectively.\\
+    where $\hat{c}$ is the Fourier transform of $c$, $\{\cdot\}_k$ denotes the Forward Fourier transform of the expression inside the square brackets, $\left[\cdot\right]_r$  denotes the Inverse Fourier transform of the expression in the brackets, $j$ is the pure imaginary number, $\mathbf{k}$ and $k$ are the wave vector and the wave vector magnitude respectively.\\
     Thus the problem simplifies to solving a system of ODEs in the Fourier reciprocal space.
 \subsection{Time marching scheme}
-    A time marching scheme is now needed to solve the system of ODEs in the Fourier reciprocal space. The simplest method is the Forward Euler method which is a first-order accurate method.
+    A time marching scheme is now needed to solve the system of ODEs in the Fourier reciprocal space. The simplest method is the Forward Euler method which is a first-order accurate method, as described by the equation
     \begin{equation}
-        \hat{c}^{n+1} = \hat{c}^n + \Delta t j\mathbf{k} \cdot \Bigl\{ M(c) \left[j\mathbf{k} \cdot \left(\hat{g(c^n)} + \kappa k^2 \hat{c}^n\right)\right]_r \Bigl\}_k
+        \hat{c}^{n+1} = \hat{c}^n + \Delta t j\mathbf{k} \cdot \Bigl\{ M(c) \left[j\mathbf{k} \cdot \left(w\hat{g'(c^n)} + \kappa k^2 \hat{c}^n\right)\right]_r \Bigl\}_k\ ,
     \end{equation}
     where $\Delta t$ is the time step and $n$ is the time step index.
     Unfortunately, the Forward Euler method is conditionally stable and suffer from a severe time step constraint. Indeed, by performing a Von-Neumann analysis on the above scheme, the time constraint can be derived.
     \subsubsection{Von-Neumann analysis}
-    The model is most limited when the mobility function is at its maximum $\texttt{max}(M(c)) = M_0$
+    A numerical method is said to be stable or convergent if the numerical domain of dependence contains the exact domain of dependence of the model \cite{Olver2014}. The domain of dependence of the model is related to the speed of propagation of the solution. In the case of the Cahn-Hilliard equation, the speed of the solution is related to the mobility function $M(c)$. 
+    The model is most limited when the mobility function is at its maximum i.e. $\texttt{max}(M(c)) = M_0$. Indeed, the mobility function represents the numerical speed of the model. The mobility function is then substituted by its maximum value $M_0$, 
     \begin{align*}
-        \hat{c}^{n+1} &= \hat{c}^n + \Delta t j\mathbf{k} \cdot \Bigl\{ M_0 \left[j\mathbf{k} \cdot \right(\hat{g(c^n)} + \kappa k^2 \hat{c}^n\left)\right]_r \Bigl\}_k\\
-        &= \hat{c}^n - \Delta t M_0 k^2 \left(\hat{g(c^n)} + \kappa k^2 \hat{c}^n \right)
+        \hat{c}^{n+1} &= \hat{c}^n + \Delta t j\mathbf{k} \cdot \Bigl\{ M_0 \left[j\mathbf{k} \cdot \right(w\hat{g'(c^n)} + \kappa k^2 \hat{c}^n\left)\right]_r \Bigl\}_k\\
+        &= \hat{c}^n - \Delta t M_0 k^2 \left(w\hat{g'(c^n)} + \kappa k^2 \hat{c}^n \right)\ .
     \end{align*}
     Considering the most limiting factor i.e. the fourth order term, the derivative of the bulk free energy density in the Fourier reciprocal space is considered negligible. Thus, one writes,
     \begin{equation*}
@@ -38,50 +39,52 @@ Each methods has its own strength and weaknesses. In this study, the Fourier spe
     This finally leads to the amplification factor,
     \begin{align*}
         |\lambda| = |1 - \Delta t M_0 \kappa k^4| &\leq 1\\
-        \implies \Delta t M_0 \kappa k^4 &\leq 1
+        \implies \Delta t M_0 \kappa k^4 &\leq 1\ .
     \end{align*}
-    Which leads to the following Courant Friedrich Lewy (CFL) condition,
+    Which leads to the following Courant Friedrich Lewy (CFL) condition, which poses the constraint on the time step,
     \begin{equation}\label{eq:2-cfl}
-        \Delta t = \texttt{CFL} \frac{1}{M_0 \kappa k^4} = \texttt{CFL} \frac{dx^4}{M_0 \kappa}
+        \Delta t = \texttt{CFL} \frac{1}{M_0 \kappa k^4} = \texttt{CFL} \frac{dx^4}{M_0 \kappa}\ .
     \end{equation}
     \subsubsection{Semi-implicit treatment}
-    To circumvent this constraint, a semi-implicit treatment inspired by Zhu et al.\ \cite{ZhuChenShenTikare1999} is performed by splitting the mobility into two parts i.e.\ $M(c) \rightarrow (M(c) - \alpha), \alpha$, with $\alpha$ the stabilization factor. This leads to a semi-implicit treatment of the fourth order term.
+    To circumvent this constraint, a semi-implicit treatment inspired by Zhu et al.\ \cite{ZhuChenShenTikare1999} is performed by splitting the mobility into two parts, i.e.\ $M(c) \rightarrow (M(c) - \alpha)\ \text{and}\ \alpha$, with $\alpha$ the stabilization factor. This leads to a semi-implicit treatment of the fourth order term.
     The scheme is then written as,
     \begin{equation}
         \begin{aligned}
-            \frac{\hat{c}^{n+1}-\hat{c}^n}{\Delta t} = j\mathbf{k} \cdot \Bigl\{ (M(c) - \alpha) \left[j\mathbf{k} \cdot \left(\hat{g(c^n)} + \kappa k^2 \hat{c}^n\right)\right]_r \Bigl\}_k\\
-            + \alpha j\mathbf{k} \cdot \left[j\mathbf{k} \cdot \left(\hat{g(c^n)} + \kappa k^2 \hat{c}^{n+1}\right)\right]
+            \frac{\hat{c}^{n+1}-\hat{c}^n}{\Delta t} = j\mathbf{k} \cdot \Bigl\{ (M(c) - \alpha) \left[j\mathbf{k} \cdot \left(w\hat{g'(c^n)} + \kappa k^2 \hat{c}^n\right)\right]_r \Bigl\}_k\\
+            + \alpha j\mathbf{k} \cdot \left[j\mathbf{k} \cdot \left(w\hat{g'(c^n)} + \kappa k^2 \hat{c}^{n+1}\right)\right]\ .
         \end{aligned}
     \end{equation}
     Expanding the above equation and isolating both $\hat{c}^{n+1}$ and $\hat{c}^n$ leads to the following semi-implicit Fourier Spectral scheme,
     \begin{equation}
         \begin{aligned}
-            \hat{c}^{n+1} = \hat{c}^n + \frac{\Delta t j\mathbf{k} \cdot \Bigl\{ M(c) \left[j\mathbf{k} \cdot \left(\hat{g(c^n)} + \kappa k^2 \hat{c}^n\right)\right]_r \Bigl\}_k}{1 + \alpha \Delta t \kappa k^4}
+            \hat{c}^{n+1} = \hat{c}^n + \frac{\Delta t j\mathbf{k} \cdot \Bigl\{ M(c) \left[j\mathbf{k} \cdot \left(w\hat{g'(c^n)} + \kappa k^2 \hat{c}^n\right)\right]_r \Bigl\}_k}{1 + \alpha \Delta t \kappa k^4}\ .
         \end{aligned}
+        \label{eq:2-semi-implicit}
     \end{equation}
     Zhu et al.\ \cite{ZhuChenShenTikare1999} showed that choosing $\alpha = \frac{1}{2} (\texttt{max}(M(c)) + \texttt{min}(M(c)))$ alleviates the time step constraint of the explicit scheme.
 
 \subsection{Diffuse filtering scheme}
-    In addition to the semi-implicit treatment, a diffuse filtering scheme inspired by Sinhababu et al.\ \cite{SinhababuBhattacharya2022} is employed to further stabilize the scheme. Indeed, the Fourier spectral method is know to suffer from the Gibbs phenomenon\ \cite{vSircaHorvat2012}--\cite{Fornberg1996} which leads to numerical oscillations near interfaces. Since the considered problems are interfacial physics problems, numerical oscillations are detrimental to the solution. Thus a dealiasing method is employed to filter out high frequency Fourier modes.
-    The diffuse filtering scheme filters out Fourier modes of frequency higher than $|k| \geq \frac{\sqrt{2}N}{3}$ with $N$ the lowest dimension of the grid. Following the notation in \cite{SinhababuBhattacharya2022}, it is defined as follows,
+    In addition to the semi-implicit treatment, a diffuse filtering scheme inspired by Sinhababu et al.\ \cite{SinhababuBhattacharya2022} is employed to further stabilize the scheme. Indeed, the Fourier spectral method is known to suffer from the Gibbs phenomenon\ \cite{SircaHorvat2012, Fornberg1996} which leads to numerical oscillations near interfaces. Thus a dealiasing method is employed to filter out high frequency Fourier modes that could potentially lead to unwanted numerical oscillations.
+    The diffuse filtering scheme filters out Fourier modes of frequency higher than $|k| \geq k_{cutoff} = \frac{\sqrt{2}}{3} \frac{2\pi}{d}$ with $d$ the lowest grid spacing in the real space.
+    Following the notation in \cite{SinhababuBhattacharya2022}, it is defined as follows,
     \begin{equation}
-        \mathcal{W}(\mathbf{k}) = \frac{1}{2}\left[1+\tanh{\left(\frac{\frac{\sqrt{2}N}{3} - \sqrt{k_x^2 + k_y^2 + k_z^2}}{\epsilon}\right)}\right]
+        \mathcal{W}(\mathbf{k}) = \frac{1}{2}\left[1+\tanh{\left(\frac{k_{cutoff} - \sqrt{k_x^2 + k_y^2 + k_z^2}}{\zeta}\right)}\right]\ ,
     \end{equation}
-    with $\epsilon = 3\times\texttt{max}(\Delta k_x, \Delta k_y, \Delta k_z)$, with $\Delta k_i$ the grid spacing in the $i$ direction in the Fourier reciprocal space.\\
+    with $\zeta = 3\times\texttt{max}(\Delta k_x, \Delta k_y, \Delta k_z)$, with $\Delta k_i$ the grid spacing in the $i$ direction in the Fourier reciprocal space.\\
     The filtered Fourier transform of an arbitrary function now writes $\{f\}_k\rightarrow \hat{f} \cdot \mathcal{W}(\mathbf{k})$. The filtered reciprocal space is represented in \autoref{chap2:2-filtered-fourier}.
-    \begin{figure}
+    \begin{figure}[H]
         \centering
         \includegraphics[width=0.5\linewidth]{chap2/2-diffuse-filter}
-        \caption{Filtered Fourier reciprocal space.}
+        \caption{Schematic of the filtered Fourier reciprocal space in 2D. The conserved Fourier modes are represented in the shaded area, from the lowest frequency, i.e. the origin of the Fourier reciprocal space, up to the limit $|k| = k_{cutoff}$. The rest of the reciprocal space is filtered out. Adapted from \cite{SinhababuBhattacharya2022}.}
         \label{chap2:2-filtered-fourier}
     \end{figure}
     \subsection{Implementation}
     The numerical scheme implementation is detailed in \autoref{fig:2-flowchart} and is inspired from \cite{Roy2021}. The implementation is done in \texttt{Python3.8} using the \texttt{PyTorch} library\ \cite{Ansel2024}.
-    \begin{figure}[H]
+    \begin{figure}
         \centering
-        \includegraphics[width=0.8\linewidth]{chap2/2-implementation.png}
-        \caption{Flowchart of the numerical scheme implementation.}
+        \includegraphics[width=\linewidth]{chap2/2-implementation.png}
+        \caption{Flowchart of the numerical scheme implementation. The numerical scheme is performed in three steps : Pre-Processing, Processing or the Time Marching Loop and the Post-Processing. The pre-processing consists in generating the composition field from either a prescribed function, a random field or a geometry generated using the \texttt{gmsh} software \cite{GeuzaineRemacle}. When the composition field is defined from a \texttt{gmsh} defined geometry, the geometry is voxelized, i.e. converted into a regular grid. Then, for optimization purposes, the tensors are pre-allocated on both the CPU and the GPU. The Processing or the Time Marching Loop implements the semi-implicit scheme defined in \autoref{eq:2-semi-implicit}. At each step, the variable mobility $M(c)$, is first computed in the real space as well as the derivative of the bulk free energy $f_0$, referred to as $g$. The Fourier Transform of the composition field $c$ and of $g$ are then computed. The chemical potential in the Fourier reciprocal space as well as its gradient in real space are computed which leads, in juxtaposition with the previously computed mobility, to the composition flux $\mathbf{J}$. With every factor computed from \autoref{eq:2-semi-implicit}, the composition field at the next time step can be evaluated. The Post-Processing consists in either saving the results in binary \texttt{.vtk} files for later visualization in \texttt{Paraview} \cite{Ayachit2015} or in \texttt{.pt} files for later analysis.}
         \label{fig:2-flowchart}
     \end{figure}
-    \texttt{PyTorch} is a high-performance deep learning library which offers automatic differentiation and and more importantly GPU acceleration which is crucial for solving phase-field problems. The Fast Fourier Transforms (resp. Inverse Fast Fourier Transforms) are computed using \texttt{torch.fft.rfftn} (resp. \texttt{torch.fft.irfftn}) since the phase-field is real valued. In addition, the \texttt{gmsh} python library is used to generate geometries, i.e.\ the initial configuration of the phase field which are then voxelize to fit the required regular grid. The details on voxelization are provided in \autoref{chap:2_4-nanowire}. Finally, the visualisation is perfomed using \texttt{Paraview}.\\
-    Numerical experiments on the implemented model are now performed on a \texttt{MacBook Pro 16'' M1 Max} with $64\,\text{GB}$ of RAM.
+    \texttt{PyTorch} is a high-performance deep learning library which offers automatic differentiation and more importantly GPU acceleration which is crucial for solving phase-field problems since it requires a considerable amount of computation power \cite{2024-6}. The Fast Fourier Transforms (resp. Inverse Fast Fourier Transforms) are computed using \texttt{torch.fft.rfftn} (resp. \texttt{torch.fft.irfftn}) since the phase-field is real valued. In addition, the \texttt{gmsh} python library is used to generate geometries, i.e.\ the initial configuration of the phase field which are then voxelize to fit the required regular grid. The details on voxelization are provided in \autoref{chap:2_4-nanowire}. Finally, the visualisation is performed using \texttt{Paraview} \cite{Ayachit2015}.\\
+    Numerical experiments on the implemented model were performed on a \texttt{MacBook Pro 16'' M1 Max} with $64\,\text{GB}$ of RAM.

@@ -2,26 +2,47 @@ import torch
 import numpy as np
 RFFT = True
 
+
 def compute_fftn(input:torch.Tensor, out:torch.Tensor=None, filter:torch.Tensor=None):
-    fft_dim = (0, 1, 2) if input.ndim == 3 else (0, 1)
-    if out is None:
-        out = torch.fft.rfftn(input, dim=fft_dim) if RFFT else torch.fft.fftn(input, dim=fft_dim)
-        #out.mul_(filter) if filter is not None else None
-        return out
+    fft_dim3 = (0, 1, 2)
+    fft_dim2 = (0, 1)
+    if RFFT:
+        if out is None:
+            out = torch.fft.rfftn(input, dim=fft_dim3) if input.ndim == 3 else torch.fft.rfftn(input, dim=fft_dim2)
+            out.mul_(filter) if filter is not None else None
+            return out
+        else:
+            torch.fft.rfftn(input, out=out, dim=fft_dim3) if input.ndim == 3 else torch.fft.rfftn(input, out=out, dim=fft_dim2)
+            #torch.fft.fftn(input, out=out, dim=(0, 1, 2))
+            out.mul_(filter) if filter is not None else None
     else:
-        torch.fft.rfftn(input, out=out, dim=fft_dim) if RFFT else torch.fft.fftn(input, out=out, dim=fft_dim)
-        #torch.fft.fftn(input, out=out, dim=(0, 1, 2))
-        #out.mul_(filter) if filter is not None else None
+        if out is None:
+            out = torch.fft.fftn(input, dim=fft_dim3) if input.ndim == 3 else torch.fft.fftn(input, dim=fft_dim2)
+            out.mul_(filter) if filter is not None else None
+            return out
+        else:
+            torch.fft.fftn(input, out=out, dim=fft_dim3) if input.ndim == 3 else torch.fft.fftn(input, out=out, dim=fft_dim2)
+            #torch.fft.fftn(input, out=out, dim=(0, 1, 2))
+            out.mul_(filter) if filter is not None else None
 
 
 def compute_ifftn(input:torch.Tensor, out:torch.Tensor=None, size:torch.Tensor=None):
-    fft_dim = (0, 1, 2) if input.ndim == 3 else (0, 1)
-    if out is None:
-        return torch.fft.irfftn(input, s=size, dim=fft_dim) if RFFT else torch.fft.ifftn(input, dim=fft_dim).real
-        #return torch.fft.ifftn(input, dim=(0, 1, 2)).real
+    fft_dim3 = (0, 1, 2)
+    fft_dim2 = (0, 1)
+    if RFFT:
+        if out is None:
+            return torch.fft.irfftn(input, s=size, dim=fft_dim3) if input.ndim == 3 else torch.fft.irfftn(input, s=size, dim=fft_dim2) #if RFFT else torch.fft.ifftn(input, dim=fft_dim).real
+            #return torch.fft.ifftn(input, dim=(0, 1, 2)).real
+        else:
+            torch.fft.irfftn(input, s=out.size(), out=out, dim=fft_dim3) if input.ndim == 3 else torch.fft.irfftn(input, s=out.size(), out=out, dim=fft_dim2) #if RFFT else out.copy_(torch.fft.ifftn(input, dim=fft_dim))
+            #out.copy_(torch.fft.ifftn(input, dim=(0, 1, 2)).real)
     else:
-        torch.fft.irfftn(input, s=out.size(), out=out, dim=fft_dim) if RFFT else out.copy_(torch.fft.ifftn(input, dim=fft_dim))
-        #out.copy_(torch.fft.ifftn(input, dim=(0, 1, 2)).real)
+        if out is None:
+            return torch.fft.ifftn(input, dim=fft_dim3).real if input.ndim == 3 else torch.fft.ifftn(input, dim=fft_dim2).real #if RFFT else torch.fft.ifftn(input, dim=fft_dim).real
+            #return torch.fft.ifftn(input, dim=(0, 1, 2)).real
+        else:
+            out.copy_(torch.fft.ifftn(input, dim=fft_dim3).real) if input.ndim == 3 else out.copy_(torch.fft.ifftn(input, dim=fft_dim2).real) #if RFFT else out.copy_(torch.fft.ifftn(input, dim=fft_dim))
+            #out.copy_(torch.fft.ifftn(input, dim=(0, 1, 2)).real)
 
 
 
@@ -33,10 +54,11 @@ def evalTotalMass(c_device: torch.Tensor, dx: float)->float:
 
     :return: float, the mass of the composition field
     """
-    return (torch.mean(c_device)).item()
+    # return (torch.mean(c_device)).item()
+    return (torch.sum(c_device)).item()
 
 
-def evalTotalEnergy(c_device: torch.Tensor, jk: "list[torch.Tensor]", params: list, filter:torch.Tensor=None)->float:
+def evalTotalEnergy(c_device: torch.Tensor, c_device_fft: torch.Tensor, jk: "list[torch.Tensor]", params: list, filter:torch.Tensor=None)->float:
     """
     Evaluate the total energy of the composition field.
 
@@ -54,8 +76,6 @@ def evalTotalEnergy(c_device: torch.Tensor, jk: "list[torch.Tensor]", params: li
     c_beta = 1.0 - c_zero
     f_0 = A * ((c_device-c_alpha)**2) * ((c_beta - c_device)**2)
 
-    c_device_fft = compute_fftn(c_device, filter=filter)
-
     # compute square of the gradient magnitude
     grad_c_squared = torch.zeros_like(c_device)
     for i in range(c_device.ndim):
@@ -70,9 +90,50 @@ def evalTotalEnergy(c_device: torch.Tensor, jk: "list[torch.Tensor]", params: li
     
     return total_energy
 
+def evalCosThetaB(c_device: torch.Tensor, c_device_fft: torch.Tensor, grad_wall_device: "list[torch.Tensor]", norm_grad_wall_device, jk: "list[torch.Tensor]", params: list, filter: torch.Tensor=None)->torch.Tensor:
+    kappa, A = params
+    # grad wall x grad c
+    grad_wall_x_grad_c = compute_ifftn(jk[0]*c_device_fft, size=c_device.size()) * grad_wall_device[0] + compute_ifftn(jk[1]*c_device_fft, size=c_device.size())*grad_wall_device[1]
+    if c_device.ndim == 3:
+        grad_wall_x_grad_c += compute_ifftn(jk[2]*c_device_fft, size=c_device.size())*grad_wall_device[2]
 
-def update_geom(R1=None, R2=None, SHAPE=None, angle=None, dist=None, offset=None, dom_size=None, dx=None, file=f'../geo/nanowire_data.pro'):
-    idx = {'R1': 1, 'R2': 2, 'nb': 5, 'shape': 8, 'angle': 11, 'dist': 14, 'offset': 17, 'Lx': 20, 'Ly': 21,'Lz': 22, 'dx': 23}
+    # norm grad c x norm grad wall
+    norm_grad_c_x_norm_grad_wall = np.sqrt(2.0/kappa * A)* torch.abs(c_device*(1.0 - c_device)) * norm_grad_wall_device + 1e-5 # to avoid division by zero
+
+    return grad_wall_x_grad_c.div_(norm_grad_c_x_norm_grad_wall)
+
+
+def evalStructureFactor(c_device: torch.Tensor, k: "list[torch.Tensor]", filter:torch.Tensor=None)->torch.Tensor:
+    """
+    Evaluate the structure factor of the composition field.
+
+    :param c: torch.Tensor, the composition field
+    :param jk: list of torch.Tensor, the wave vectors
+    :param params: list of float, the physical parameters
+    :param filter: torch.Tensor, the filter to apply to the Fourier transform
+
+    :return: torch.Tensor, the structure factor of the composition field
+    """
+    mean_c_sq = torch.mean(c_device)
+    mean_sq_c = torch.mean(c_device**2)
+    c_device_fft = compute_fftn(c_device - mean_c_sq, out=None, filter=filter)
+    mean_c_sq = mean_c_sq**2
+
+    SF = torch.mean(c_device_fft*c_device_fft.conj()).real
+    SF = SF/(mean_sq_c - mean_c_sq)
+
+    return SF
+
+# Function to update the image
+def update_plot(fig, ax, im, update_data, t):
+    im.set_data(update_data)  # Update the data of the imshow
+    ax.set_title(f"$t={t}$")  # Optional: update title or other properties
+    fig.canvas.draw()  # Redraw the figure
+    fig.canvas.flush_events()  # Flush GUI events
+
+
+def update_geom(R1=None, R2=None, SHAPE=None, SHAPE_EQL=None, SUBSTRATE=None, angle=None, dist=None, offset=None, dom_size=None, dx=None, file=f'../geo/nanowire_data.pro'):
+    idx = {'R1': 1, 'R2': 2, 'nb': 5, 'shape': 8, 'shape_eql': 9, 'substrate':10, 'angle': 13, 'dist': 16, 'offset': 19, 'Lx': 22, 'Ly': 23,'Lz': 24, 'dx': 25}
     with open(file, 'r') as f:
         lines = f.readlines()
         
@@ -84,6 +145,10 @@ def update_geom(R1=None, R2=None, SHAPE=None, angle=None, dist=None, offset=None
             lines[idx['nb']] = f'NB_NW = 2;\n'
         if SHAPE is not None:
             lines[idx['shape']] = f'SHAPE = {SHAPE};\n'
+        if SHAPE_EQL is not None:
+            lines[idx['shape_eql']] = f'SHAPE_EQL = {SHAPE_EQL};\n'
+        if SUBSTRATE is not None:
+            lines[idx['substrate']] = f'SUBSTRATE = {SUBSTRATE};\n'
         if angle is not None:
             lines[idx['angle']] = f'angle = {angle};\n'
         if dist is not None:

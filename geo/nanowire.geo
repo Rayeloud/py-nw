@@ -3,6 +3,9 @@ Include "nanowire_data.pro";
 //+
 SetFactory("OpenCASCADE");
 
+
+theta_B = 2.475;
+
 // Parameters
 READONLY = DefineNumber(1, Choices{0, 1}, Name "Parameters/0Read Only");
 _dX = DefineNumber(dX, Name "Parameters/dX", Visible 0);
@@ -14,7 +17,17 @@ _R_2 = DefineNumber(R_2/dX, Name "Parameters/r_2", Visible 0);
 SHAPE_FLAG = DefineNumber(SHAPE, Choices{
     0="Cylindrical",
     1="Pentagonal"},
-    Name "Parameters/Shape");
+    Name "Parameters/100Shape");
+
+SHAPE_FLAG_EQL = DefineNumber(SHAPE_EQL, Choices{
+    0="Volume",
+    1="Outer surface"},
+    Name "Parameters/101Conserve...", Visible SHAPE_FLAG==1);
+
+SUBSTRATE_FLAG = DefineNumber(SUBSTRATE, Choices{
+    0="No",
+    1="Yes"},
+    Name "Parameters/102Substrate");
 
 NB_NW_PARAM = DefineNumber(NB_NW-1, Choices{
 0="1",
@@ -70,7 +83,21 @@ If (SHAPE_FLAG == 1)
     center_y = Ly/2 - offset;
     theta = 2*Pi/5;
     theta_offset = Pi / 2 + theta; //offset to start from the top
-    R_pent = Sqrt(2*Pi/(5*Sin(theta)))*R1;
+    // If (SHAPE_FLAG_EQL == 0)
+    //     R_pent = Sqrt(2*Pi/(5*Sin(theta)))*R1;
+    // Else
+    //     R_pent = Pi/(5*Sin(theta/2)) * R1;
+    // EndIf
+    If (SHAPE_FLAG_EQL == 0)
+        S_pent = Sqrt(4/5 * Pi / Tan(3*Pi/10)) * R1;
+    Else
+        S_pent = 2/5 *Pi * R1;
+    EndIf
+    If (SUBSTRATE_FLAG == 1)
+        S_pent = 1/2 * theta_B * R1;
+    EndIf
+    R_pent = S_pent / (2*Sin(Pi/5));
+    Printf("S_pent = %g", S_pent);
     // Define points
     For i In {1:5}
         x_i = center_x + R_pent*Cos(i*theta+theta_offset);
@@ -157,7 +184,18 @@ If (NB_NW_PARAM == 1 && angle2 > 0)
     If (SHAPE_FLAG == 1)
         theta = 2*Pi/5;
         theta_offset = Pi / 2 + theta; //offset to start from the top
-        R_pent = Sqrt(2*Pi/(5*Sin(theta)))*R2;
+        // If (SHAPE_FLAG_EQL == 0)
+        //     R_pent = Sqrt(2*Pi/(5*Sin(theta)))*R2;
+        // Else
+        //     R_pent = Pi/(5*Sin(theta/2)) * R2;
+        // EndIf
+        If (SHAPE_FLAG_EQL == 0)
+            S_pent = Sqrt(4/5 * Pi / Tan(3*Pi/10)) * R2;
+        Else
+            S_pent = 2/5 *Pi * R2;
+        EndIf
+        Printf("S_pent = %g", S_pent);
+        R_pent = S_pent / (2*Sin(Pi/5));
         // Define points
         For i In {1:5}
             x_i = X + R_pent*Cos(i*theta+theta_offset);

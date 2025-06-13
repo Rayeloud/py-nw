@@ -1,6 +1,32 @@
 \chapter*{Abstract}
-\lipsum[1]
+Metallic nanowire networks are increasingly investigated as potential transparent conductive materials (TCMs) in thermoelectric and optoelectronic applications. However, their thermal stability remains a major challenge due to the morphological instability that leads to nanowire breakup at elevated temperatures. The aim of this thesis is to analyze and characterize the breakup dynamics of metallic nanowires under surface-driven evolution, in order to provide insights into the optimization of nanowire networks. To this end, a diffuse-interface phase-field model based on the Cahn–Hilliard equation is developed and validated.
+
+Following a detailed theoretical and numerical foundation, the phase-field model is implemented with a semi-implicit Fourier spectral scheme and a diffuse filtering scheme, to provide a more stable scheme to numerical oscillations and subsequent instabilities. An in-depth parametric study of free-standing nanowires in two configurations, single wires and junctions, is performed. Scaling laws for breakup time and instability wavelength are systematically derived as functions of the configuration geometrical properties. Results confirm a $t_b \propto R^4$ scaling and instability wavelengths $\lambda \geq \lambda_c$ for finite length nanowires, consistent with the predictions of Nichols and Mullins. Additionally the influence of the initial morphology is investigated, comparing the idealized circular cross-section to a closer representation of the real structure of Silver nanowires, namely a pentagonal cross-section. The results show faster breakup dynamics due to the high curvature at the corners of the pentagonal cross-section, revealing the importance of considering realistic geometries in phase-field modeling.
+
+The phase-field model is extended using the Smoothed Boundary Method (SBM) to simulate substrate-supported nanowires. The results demonstrate a consistent slowdown in the instability dynamics due to the restriction of perturbation modes, as predicted by McCallum et al. Scaling laws from the free-standing case are preserved, confirming the robustness of the phase-field approach. 
+
+Finally, the work concludes by proposing future extensions to account for grain-level anisotropy, electro-thermo-mechanical coupling, and mesh adaptivity. These improvements aim to enhance the predictive capabilities of phase-field modeling in real-world nanowire applications.
+
 \chapter*{Résumé}
-\lipsum[1]
+Les réseaux de nanofils métalliques suscitent un intérêt croissant en tant que matériaux conducteurs transparents (TCMs) pour les applications thermoélectriques et optoélectroniques. Toutefois, leur stabilité thermique reste un enjeu majeur en raison de l’instabilité morphologique qui conduit à la fragmentation des nanofils à haute température. L’objectif de ce mémoire est d’analyser et de caractériser la dynamique de fragmentation des nanofils métalliques soumise à une évolution de surface, afin de proposer des pistes d’optimisation pour la stabilité des réseaux de nanofils. Pour cela, un modèle phase-field, basé sur l’équation de Cahn–Hilliard, est développé et validé.
+
+Après avoir posé un cadre théorique et numérique, le modèle phase-field est implémenté à l’aide d’un schéma spectral de Fourier semi-implicite couplé à un filtrage diffus, dans l'objectif d'obtenir une meilleure stabilité face aux oscillations numériques et aux instabilités associées. Une étude paramétrique approfondie est menée sur des nanofils en suspension libre, dans deux configurations : un nanofil isolé et une jonction de nanofils. Des lois d’échelle reliant le temps de fragmentation et la longueur d’onde de l’instabilité aux propriétés géométriques des configurations sont systématiquement établies. Les résultats confirment une loi de type $t_b \propto R^4$ et une longueur d’onde critique $\lambda \geq \lambda_c$ pour les nanofils de longueur finie, en accord avec les prédictions de Nichols et Mullins. De plus, l’influence de la morphologie initiale est étudiée en comparant la section circulaire idéalisée à une représentation plus réaliste des nanofils d’argent : une section pentagonale. Les résultats révèlent une dynamique de fragmentation accélérée en raison de la forte courbure aux sommets, soulignant l’importance d’intégrer des géométries réalistes dans les modèles phase-field.
+
+Le modèle est ensuite étendu à l’aide de la Smoothed Boundary Method (SBM) pour simuler des nanofils déposés sur substrat. Les résultats montrent un ralentissement cohérent de la dynamique d’instabilité, dû à la restriction des modes de perturbation, conformément aux prédictions de McCallum et al. Les lois d’échelle observées dans le cas suspendu sont conservées, attestant de la robustesse de l’approche phase-field.
+
+Enfin, le travail se conclut par des perspectives d’extension du modèle pour intégrer l’anisotropie à l’échelle des grains, le couplage électro-thermo-mécanique, ainsi que l’adaptativité du maillage. Ces améliorations visent à renforcer les capacités prédictives de la modélisation par champ de phase dans des applications réelles de nanofils.
+%\lipsum[1]
 \chapter*{Acknowledgments}
-\lipsum[1]
+% Over the course of the last year, and the last years in general, I have been fortunate enough to have been surrounded by many people whom brought me their support. I would like to dedicate this section to them.
+
+% First, I would like to thank my academic supervisor Prof. Nguyen for his guidance, help in my organization and my work and general patience and understanding. Your support has been invaluable, and I am grateful for the time you took to discuss my work with me. Your insights and suggestions have helped me to improve my research and my writing, and I am thankful for your patience and understanding throughout the process.
+
+% I would also like to thank Amaury Baret for his kindness, his patience and his guidance throughout the year spent working on this thesis. The discussions we had were both insightful and a pleasure to have. You have had a significant impact on my motivation and my drive to pursue a career in research, and for that I am grateful.
+
+% I also want to express my gratitude to the members of the research group for their support and encouragement.
+
+% I want to also thank Guillian Bryndza for the many discussions we had around the topic of phase-field modeling. 
+
+% I would also like to thank my friends for their support, and continuous help at keeping me motivated. A particular thank to Charles Jacquet, Philippe Tevoedjre and Guillaume Delporte, whose support throughout this endeavor has been invaluable. 
+
+% And last but not least, I would like to thank my family for their unconditional support and love. 

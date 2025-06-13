@@ -1,0 +1,53 @@
+Dimensionless equations are such that relationships between the physical parameters hold true no matter the scale of the system \cite{Sonin}. In addition, Buckingham--$\mathbf{\pi}$ theorem provides a tool to identify the number of dimensionless independent quantities that affects a dimensionless dependent quantity, i.e.
+\begin{equation}
+    \Pi_0 = f(\Pi_1, \Pi_2, \ldots, \Pi_{n-k})
+\end{equation}
+with $n$ the number of independent quantities and $k$ the number of dimensionally independent quantities.\\
+In this context, the Cahn-Hilliard equation can be non-dimensionalized by considering the following characteristic quantities \cite{MaoDemkowicz2021,Sonin},
+\begin{equation}
+    x = L^* x'  \quad\text{and}\quad t = T^* t'  %\quad\text{and}\quad w = \frac{E^*}{(L^*)^3} A 
+\end{equation}
+where $L^*$ and $T^*$ are respectively the length and time characteristic quantities.\\
+Following this definition and by considering the order parameter $c$ to be non-dimensional as recalled in \autoref{chap:2_4-nanowire}, \autoref{eq:2-ch} can be rewritten as,
+\begin{equation}
+    \begin{aligned}
+        \frac{1}{T^*} \frac{\partial c}{\partial t'} &= \frac{1}{L^*} \nabla' \cdot \left[ M(c) \frac{1}{L^*} \nabla'\left(w g'(c) - \frac{\kappa}{(L^*)^2} \Delta' c \right)\right]\\
+        \frac{\partial c}{\partial t'} &= \nabla' \cdot \left[ M_0 w \frac{T^* E^*}{(L^*)^5} m(c) \nabla' \left( g'(c) - \kappa \frac{L^*}{w} \Delta' c\right)\right]\\
+        \implies \frac{\partial c}{\partial t'} &= \nabla' \cdot \left[ \tilde{M}(c) \nabla' \left(g'(c) - \tilde{\kappa} \Delta' c\right)\right]
+    \end{aligned}
+\end{equation}
+with the scaled non-dimensional mobility $\tilde{M}$ and the scaled non-dimensional gradient energy $\tilde{\kappa}$ given by,
+\begin{equation}
+    \tilde{M}(c) = M_0 w \frac{T^*}{(L^*)^2} m(c) \quad\text{and}\quad \tilde{\kappa} = \frac{\kappa}{w} \frac{1}{(L^*)^2}\ ,
+\end{equation}
+where $m(c)$ is the normalised mobility function defined in \autoref{eq:2-vm}.\\
+In addition, a characteristic energy $E^*$ can be defined \cite{MaoDemkowicz2021}.
+Following this non-dimensionalisation, the defined characteristic quantities can be expressed in terms of the physical parameters of the Cahn-Hilliard equation as,
+\begin{equation}\label{eq:3-charac}
+    L^* \approx \sqrt{\frac{\kappa}{w}}\quad ,  \quad T^* \approx \frac{\kappa}{w^2 M_0}\quad \text{and} \quad E^* \approx \sqrt{\frac{\kappa^3}{w}}\ .
+\end{equation}
+The characteristic length $L^*$ is proportional to the characteristic length of the diffuse interface $\delta_c$ and is taken such that $L^* = 1$ unit length corresponds to a diffuse interface thickness ($0.05<c<0.95$) of $\xi_c=2.944\, \delta_c = 1$ unit length \cite{JokisaariVoorheesGuyerWarrenHeinonen2017}.\\
+%Similarly, non-dimensional characteristic quantities can be defined using the non-dimensionalized parameters of the Cahn-Hilliard equation,
+% \begin{equation}
+%     \tilde{L}^* \approx \sqrt{\frac{\tilde{\kappa}}{A}}\quad ,  \quad \tilde{T}^* \approx \frac{\tilde{\kappa}}{A^2 \tilde{M}}\quad \text{and} \quad \tilde{E}^* \approx \sqrt{\frac{\tilde{\kappa}^3}{A}}\ .
+% \end{equation}
+The general organization of the results is initially inspired by Mao et al. \cite{MaoDemkowicz2021} approach as their work provides a comprehensive framework for non-dimensional analysis of phase-field models.
+The goal is to carry out phase-field simulations of the morphological instability that nanowires, in different configurations, undergo. The two quantities of interest are the breakup time $t_b$, i.e. the time of first morphological failure, and the wavelength of the instability $\lambda$, i.e. the spacing between between each resulting nanodots. The quantities are recorded for different combinations of the characteristic quantities and of the geometrical parameters, yielding
+% The goal is to carry out phase-field simulations of the morphological instability that cylindrical nanowires undergo. To do so, two quantities of interest are studied, the breakup time $t_d$ - the time at which the   - and the wavelength of the instability $\lambda$. The influence of the breakup time and the wavelength of the instability is studied in relation of the previously defined characteristic quantities as well as the geometrical properties of the nanowire.
+\begin{equation}
+    t_b = f(\dots; L^*, T^*, E^*) \quad\text{and} \quad \lambda = g(\dots; L^*, T^*, E^*)\ ,
+\end{equation}
+the functional dependencies of quantities of interest. The wavelength $\lambda$ is defined as the distance between two consecutive nanodots along the wire-axis and the breakup time $t_b$ as the time at which the first pinch-off occurs, i.e. the onset of ovulation. To quantitatively determine the latter, a dimensionless parameter, the driving force $\Gamma$, is defined as,
+\begin{equation}
+    \Gamma(t) = \frac{\Delta \mu(t)}{\Delta \mu(0)}\,
+\end{equation}
+where $\Delta \mu$ is the difference between the highest and lowest value of the chemical potential at time $t$ and $t=0$ is the initial time of the simulation.\\
+This indicator is inspired by the approach Amos et al. \cite{AmosBhattacharyaNestlerAnkit2018,AmosBhattacharyaNestlerAnkit2018} utilised to quantify the spheroidization dynamics of finite length metallic rods under volume-driven diffusion. An example of the driving force $\Gamma$ during the transformation of a finite length nanowire is given in \autoref{fig:3-driving-force-example}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{chap3/3-example-gamma-new.pdf}
+    \caption{Example of the driving force $\Gamma$ with respect to time for a finite nanowire of length $L/L^* = 150$ and radius $R/L^* = 3$ with $T^*=0.1$ and $E^*=1$. The top figure represents the evolution of the driving force $\Gamma$ at different dimensionless time $t/T^*$. The bottom figure shows snapshots from the morphological evolution of the nanowire. The breakup time $t_b$ is defined as the time at which the driving force $\Gamma$ reaches a steep increase which matches with the pinch-off of the nanowire.}
+    \label{fig:3-driving-force-example}
+\end{figure}
+The breakup time $t_b$ is then defined as the time at which a steep increase of the driving force $\Gamma$ occurs. In addition, the spatial (resp. time) refinement factor $\rho$ (resp. $\omega$) is defined as the ratio between the characteristic length $L^*$ (resp. characteristic time $T^*$) and the mesh size $\Delta x$ (resp. the time step $\Delta t$).\\
+The goal is to provide a framework to better understand the instability mechanism and to shed light on possible ways to control the onset of instability, which would be relevant in the optimization of nanowire-based devices.

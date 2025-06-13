@@ -1,0 +1,90 @@
+Partial differential equations requires the definition of boundary conditions for a solution to be unique. However, when solving PDEs numerically, treating the boundary conditions can be challenging. In particular, when the computational domain has complex geometries, the computational cost associated to the construction of a sufficiently accurate grid can be a limiting factor. Fourier spectral methods, while giving very accurate numerical approximations of solutions, are limited to simple geometries and periodic boundary conditions. In this context, Bueno-Orovio et al. \cite{BuenoOrovioPerezGarcia2006,BuenoOrovioPerezGarciaFenton2006,BuenoOrovio2006-1} introduced the Spectral Smoothed Boundary Method (SSBM), a domain embedding method that allows the automatic treatment of boundary conditions by reformulating the PDEs through the use of an order-like parameter $\psi$, inspired by the phase-field formalism. Yu et al. \cite{YuChenThornton2009,YuChenThornton2012} expanded the formalism to any boundary condition treatment as the initial work was limited to the no-flux Neumann boundary condition.
+%\textcolor{red}{Partial differential equations (PDEs) require the specification of boundary conditions (BCs) to ensure a well-posed and uniquely defined solution. However, in numerical contexts, the implementation of these boundary conditions is often nontrivial, especially when the computational domain exhibits complex geometries or the boundaries are implicitly defined. This challenge is further exacerbated when employing spectral methods, which are naturally formulated on regular grids and assume periodic or simple boundary conditions. Imposing more general or functional-dependent BCs — particularly those that vary with the solution itself, such as composition-dependent flux conditions in phase-field models — becomes highly intricate in such frameworks. Traditional techniques for enforcing BCs, such as penalization or projection, often introduce spurious errors or require artificial smoothing. To address this, the Spectral Smoothed Boundary Method (SSBM) was introduced by Yu et al.~\cite{YuChenDu2008}, enabling the imposition of Dirichlet, Neumann, and even Robin-type conditions on diffuse interfaces embedded in a regular grid. The SSBM reformulates the PDEs with smoothed indicator functions, allowing boundary conditions to be implicitly enforced while preserving the spectral accuracy and computational efficiency of Fourier-based methods. This approach is particularly advantageous in diffuse interface models, where interfaces and boundaries naturally lack sharp transitions.}
+\subsection{Mathematical derivation}
+    The method is based on a diffuse interface description of the boundary condition, similar to the phase-field formalism used in the presented work \cite{YuChenThornton2012}. In this context, the internal domain is defined using an order-parameter-like field, $\psi$ the domain parameter, which is defined as,
+    \begin{equation}
+        \psi(\mathbf{x}, t) = \begin{cases}
+            1 & \text{if } \mathbf{x}\ \text{in } \Omega, \\
+            0.5 & \text{if } \mathbf{x}\ \text{on } \Gamma_s, \\
+            0 & \text{if } \mathbf{x}\ \text{in } \Omega_s .
+        \end{cases}
+        \ ,
+    \end{equation}
+    where $\Omega$ is the internal domain, $\Gamma_s$ the boundary on which the condition is applied, and $\Omega_s$ the external domain.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{chap4/4-psi-domain.pdf}
+        \caption{(a) Example of an irregular domain $\Omega$ with $\Gamma_s$ the boundary of said domain and $\Omega_s$ the external domain. (b) 1D representation of the domain parameter at the boundary $\Gamma_s$ for different value of the characteristic width $\delta_\psi$ of domain parameter $\psi$.}
+        \label{fig:4-sbm-domain-parameter}
+    \end{figure}
+    Conveniently, the gradient of the domain parameter $\nabla \psi$ describes the inward normal to the boundary $\Gamma_s$.\\
+    In general, when solving PDEs, the boundary conditions can either be Dirichlet, Neumann or Robin. Both the Dirichlet and Neumann conditions can be rewritten in terms of the domain parameter by considering the following relations. In the case of the Neumann boundary condition, consider the product of the domain parameter by the Laplacian of an arbitrary function $H$. The product rule identity leads to the following relation,
+    \begin{equation}\label{eq:4-sbm-condition}
+        \psi \nabla^2 H = \nabla \cdot (\psi \nabla H) - \nabla \psi \cdot \nabla H\ .
+    \end{equation}
+    The relationship involves the gradient of the domain parameter $\nabla \psi$ which, as previously stated, describes the inward normal of the boundary. Indeed, the inward normal $\mathbf{n_s}$ is given by $\nabla \psi / |\nabla \psi|$. In addition, a Neumann boundary condition of an arbitrary function $H$ can be written as,
+    \begin{equation}
+        \frac{\partial H}{\partial \mathbf{n_s}} = \nabla H \cdot \mathbf{n_s} = N \quad \text{on } \Gamma_s\ .
+    \end{equation} 
+    As a result, the Neumann boundary condition can be imposed by substituting $\nabla \psi \cdot \nabla H$ with the prescribed condition $N$,
+    \begin{equation}
+        \psi \nabla^2 H = \nabla \cdot (\psi \nabla H) - N|\nabla \psi|\ .
+    \end{equation}
+    The gradient of the domain parameter being non-zero only on the boundary $\Gamma_s$, the contribution of the second term occurs only on the boundary. With the formalism presented, the following provides the requirements to impose a contact angle Neumann boundary condition to the Cahn-Hilliard equation.
+\subsection{Modified Cahn-Hilliard equation}
+    As stated in \autoref{chap:1_3-phase-field}, the requirement for the system to reach equilibrium is the minimization of the total free energy. In other terms, the variational derivative of the free energy functional vanishes at equilibrium which leads to the Euler-Lagrange equation defined in \autoref{eq:1-euler-lagrange}. The Euler-Lagrange equation can be rewritten by multiplying both sides by the gradient of composition $\nabla c$,
+    \begin{equation}
+        \frac{\partial f_0}{\partial c} \nabla c  - (\kappa \nabla^2 c) \nabla c = \frac{\partial f_0}{\partial c} \frac{\partial c}{\partial \mathbf{x}} - \frac{\kappa}{2} \nabla (|\nabla c|^2)=0\ .
+    \end{equation}
+    The first term can be rewritten as $\nabla f_0$, and the second term as $\frac{\kappa}{2}\nabla (|\nabla c|^2)$. Integrating both sides leads to the following equality,
+    \begin{equation}
+        |\nabla c| = \sqrt{\frac{2}{\kappa} f_0}\ ,
+        \label{eq:4-grad2-approx}
+    \end{equation}
+    where the integration constant vanishes since $f_0$ in the bulk vanish. This equality will be particularly useful when defining the desired contact angle condition.\\
+    The contact angle $\theta_B$ is the dihedral angle \cite{LeeKim2011} formed at the junction between three phases, or in a binary system, the two phases $\alpha$ and $\beta$ (film -- vapor) and the solid surface (substrate).
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.5\textwidth]{chap4/4-contact-angle-schematic.png}
+        \caption{Contact angle $\theta_B$ at the junction between three phases i.e. the binary system $\alpha$--$\beta$ and the solid surface. Adapted from \cite{LeeKim2011}}
+        \label{fig:4-contact-angle}
+    \end{figure}
+    The composition-substrate interaction is modeled by a boundary condition which prescribes a specific contact angle at the junction, which follows Young's equality \cite{LeeKim2011},
+    \begin{equation}
+        \gamma_{\alpha\beta} \cos{\theta_B} = \gamma_{\beta s} - \gamma_{\alpha s}\ ,
+    \end{equation}
+    where $\gamma_{\alpha\beta}$ is the interfacial energy density between $\alpha$ and $\beta$, i.e. the film surface energy density. The prescribed contact angle condition is then imposed by considering,
+    \begin{equation}
+        \mathbf{n_c}\cdot\mathbf{n_s} = \cos{\theta_B}\ ,
+    \end{equation}
+    where $\mathbf{n_c}$ and $\mathbf{n_s}$ are respectively the outward normal to the $\alpha$--$\beta$ interface and the inward normal to the substrate. The outward normal $\mathbf{n_c}$ is expressed as $-\nabla c / |\nabla c|$ (pointing toward $c=0$), while the inward normal to the substrate is given by $\nabla \psi / |\nabla \psi|$. Therefore, the contact angle boundary condition can be rewritten as
+    \begin{equation}
+        \nabla c \cdot \nabla \psi = - |\nabla c|\cos{\theta_B}|\nabla \psi|\ .
+    \end{equation}
+    Substituting \autoref{eq:4-grad2-approx} in the above leads to,
+    \begin{equation}
+        \nabla c \cdot \nabla \psi =\underbrace{-\sqrt{\frac{2}{\kappa} f_0} \cos{\theta_B}|}_{N}\nabla \psi| \ .
+    \end{equation}
+    The boundary condition expression derived above is similar to the one suggested by Warren et al.~\cite{WarrenPusztaiKornyeiGranasy2009} where the substrate is treated as a sharp wall. In the sharp interface limit, both conditions are equivalent. However, the SBM formalism allows for a diffuse interface description of the boundary condition, which is more suitable for numerical simulations.\\
+    Following the same reasoning as \cite{YuChenThornton2012}, the composition field $c$ can be confined within $\Omega_M$ by multiplying both sides of \autoref{eq:2-ch} and \autoref{eq:2-mu} by the domain parameter $\psi$. Using, the modified Cahn-Hilliard equation writes,
+    \begin{align}
+        \psi \frac{\partial c}{\partial t} &= \nabla \cdot \left(\psi M(c) \nabla \mu \right) -  (M(c)\nabla\mu) \cdot \nabla \psi \\
+        \psi \mu &= \psi \frac{\partial f_0}{\partial c} - \kappa \nabla \cdot \left(\psi \nabla c\right) - \sqrt{2 \kappa f_0} \cos{\theta_B} |\nabla \psi| \ .
+    \end{align}
+    As recalled in \autoref{eq:1-flux}, the term $M(c)\nabla\mu\cdot\nabla\psi$ corresponds to the flux of composition across the substrate, which is null to ensure mass conservation in the domain. 
+\subsection{Validation}\label{sec:4-validation}
+    The proposed approach at modeling a contact-angle condition using the SBM formalism is validated by considering the simple case of a 2D square droplet on a flat substrate under different contact angle conditions. The domain order parameter $\psi$ is defined as,
+    \begin{equation}
+        \psi(x,y,z) = \frac{1}{2} \left[1 + \tanh{\left(\frac{y_\psi-y}{\delta_\psi}\right)}  \right]\ ,
+    \end{equation}
+    with $y_\psi$ the position along the $y$--axis of the interface between the substrate and the domain, and $\delta_\psi$ the characteristic width of the substrate diffuse interface.\\
+    The square droplet is initialized as a rectangular composition field of size $l\times h$ with $l=20\ (-)$ and $h=100\ (-)$. The substrate characteristic width $\delta_\psi$ is chosen as per Yu et al.~\cite{YuChenThornton2012} recommendation, i.e. as a few $\Delta x$ units. 
+    Contour plots of the square droplet for different prescribed contact angles $\theta_B$ are shown in \autoref{fig:4-sbm-validation}.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=.8\textwidth]{chap4/4-contact-angle-sim.pdf}
+        \caption{2D profile of the square droplet and its equilibrium profile for different contact angles. (a) $\theta_B = 45^\circ$ (c) $\theta_B = 90^\circ$ (d) $\theta_B = 135^\circ$ (e) $\theta_B = 180^\circ$. The initial profile is shown in blue whereas the equilibrium profile, chosen as the profile for which the total free energy is constant, is shown in red. Discrepancy between the prescribed contact angle and the equilibrium contact angle for the case of $\theta_B=180^\circ$ can be indicative of the influence of the spatial refinement on the composition field.}
+        \label{fig:4-sbm-validation}
+    \end{figure}
+    Numerical experiments shows that choosing a too thin substrate, i.e. a small interfacial width, can lead to numerical instabilities due to the sharpness of the boundary. In addition, choosing a too large interfacial width can greatly influence the initial condition of the system. The optimal interfacial width is thus chosen in order to reduce the risk of numerical instabilities whilst keeping the composition field intact. For the rest of the chapter, the substrate interfacial width is taken such that it matches with the composition interfacial width.\\
+    The SBM formalism now implemented and validated, it can be used to model nanowires deposited on a flat substrate.
