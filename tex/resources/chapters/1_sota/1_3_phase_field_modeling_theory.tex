@@ -1,0 +1,106 @@
+\subsection{Theoretical context}
+    In materials science, many important processes take place at the mesoscale. Mesoscale processes can impact on the measured macro-properties of a system\ \cite{MoelansBlanpainWollants2008}. Thus, accurate models which simulate the physics at that scale are required to better understand and predict the properties of physical systems.\\
+    Initially, the sharp-interface approach was used to study the physics at that scale at the mesoscale. However, many processes at the this scale suffer from this mathematical definition and become almost intractable using this approach. Interface tracking with complex geometries (e.g. during dendritic growths) and topological changes (e.g. merging of two particles) are particularly challenging\ \cite{Emmerich2008}.\\
+    Indeed, using a sharp-interface approach, consider the case of precipitate growth schematised in \autoref{fig:1-sharp-interface}.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.44\textwidth]{chap1/1-free-boundary.png}
+        \caption{Sharp interface approach to 1D growth of a spherical particle of radius $R$. The figure represents the concentration profile along the radial direction. The concentration values $c^\beta$, $c^\alpha$ and $c_0$ are respectively the equilibrium concentration in the $\beta$ phase, $\alpha$ phase and the alloy. Adapted from \cite{Voorhees2018,MoelansBlanpainWollants2008}.}
+        \label{fig:1-sharp-interface}
+    \end{figure}
+    The precipitate in the $\beta$ phase grows by diffusion. The concentration profile is solved using Fick's second law of diffusion \cite{Gottstein2004} in both phases and the interface position, i.e. the radius $R$, is determined by the equilibrium condition at the interface. This writes as follows,
+    \begin{equation}
+        \begin{aligned}
+            &\frac{\partial c^i}{\partial t} = D^i \nabla^2 c^i\quad,\quad i=\alpha, \beta\\
+            &\frac{\partial R}{\partial t} = D \frac{\partial c}{\partial r}\Bigl|_{r=R(t)}\\
+            &\mu^\alpha(c^\alpha_{int}) = \mu^\beta(c^\beta_{int}).
+        \end{aligned}
+    \end{equation}
+    The first equation, Fick's second law, is obtained by combining Fick's first law which states that the flux of particles is proportional to the gradient of concentration $\nabla c$ with the continuity equation \cite{Gottstein2004}. $D^i$ is the diffusion constant related to the phase $i$ and $c^i$ is the concentration of particles in the phase $i$.\\
+    The second equation tracks the motion of the interface. Finally, the third equation describes the thermodynamic constraint which states that both phases are in equilibrium at the interface\ \cite{Voorhees2018, Gottstein2004,Emmerich2008, LeeHuhJeongShinYunKim2014,MoelansBlanpainWollants2008}.\\
+    The issue with this approach is that both equations depend on the position of the interface which consequently depends on the composition in each phase. This kind of problem is referred to as a free boundary problem\ \cite{JokisaariVoorheesGuyerWarrenHeinonen2017}.\\\\
+    A solution to this problem was introduced by Langer\ \cite{LangerBaronMiller1975}. He proposed a description using a single equation which holds true in the entire domain. To achieve this, the sharp interface is approximated by a finite width interface, a diffuse-interface, schematised in \autoref{fig:1-diffuse-interface}. This approach was first thought to be \textit{`too complex to be useful'} since it would require a fine enough mesh to render the diffuse interface\ \cite{Voorhees2018}. However, with the technological advances, diffuse-interface approach is becoming the standard when studying microstructural evolution, in particular phase-field modeling.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.42\textwidth]{chap1/1-diffuse-interface.png}
+        \caption{Diffuse interface approach to 1D growth of a spherical particle of radius $R$. Adapted from \cite{Voorhees2018,MoelansBlanpainWollants2008}}
+        \label{fig:1-diffuse-interface}
+    \end{figure}
+    In this context, the microstructure is described by a set of continuous fields which vary smoothly across the interface. Within each phase, the field has the same value and meaning as in the sharp interface approach. The position of the free interface can be retrieved through contours of constant values of the field variable. In addition, no constraint are required at the interface. For example, consider the case of a binary system of composition $c$ composed of an $\alpha$ and a $\beta$ phase which respectively have a composition $c=c_\alpha^{eq}$ and $c=c_\beta^{eq}$ at equilibrium. The regions of the system where the field variable $c(\mathbf{x}, t)=c_\alpha^{eq}$ and $c(\mathbf{x}, t)=c_\beta^{eq}$ corresponds respectively to the $\alpha$ and $\beta$ phase whereas the regions where $c(\mathbf{x},t)$ is between $c_\alpha^{eq}$ and $c_\beta^{eq}$ corresponds to the interface between both phases, as shown in \autoref{fig:1-phase-field} \cite{LeeHuhJeongShinYunKim2014}.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.3\textwidth]{chap1/1-phase-field.png}
+        \caption{Example of a two phase microstructure with a phase field variable $c$ in 2D. \cite{LeeHuhJeongShinYunKim2014}}
+        \label{fig:1-phase-field}
+    \end{figure}
+\subsection{Fundamental principles and Formulation}
+    The microstructure is described by a set of continuous fields \cite{LeeHuhJeongShinYunKim2014,Voorhees2018,Cahn1961,Biner2017-1,CahnHilliard1958,Cahn1959}, i.e. the phase-field variables, field variables or order parameters. These variables can either be conserved or non-conserved depending on the phase-field model employed. Conserved order parameter often refers to the local composition whereas non-conserved order parameter often refers to crystal structure or to the phase of a composition (e.g. solid-liquid). Conserved fields variables satisfies a continuity equation which ensures conservation of the quantity whereas non-conserved field variables have no conservation constraint \cite{CahnHilliard1958,Cahn1959}.\\
+    The driving force of microstructural dynamics is the minimization of the free energy of the system \cite{MoelansBlanpainWollants2008,Voorhees2018,CahnHilliard1958,Cahn1959} can be written as,
+    \begin{equation}
+        F = F_{bulk} + F_{int} + F_{source}\ ,
+    \end{equation}
+    with $F_{bulk}$ the free energy associated to the bulk of the system, $F_{int}$ the free energy associated to interfacial interactions and $F_{source}$ the free energy associated to additional sources of energy such as elastic strains, electromagnetic fields, and more \cite{Voorhees2018,MoelansBlanpainWollants2008}.\\
+    Classically, thermodynamic properties are assumed homogeneous throughout the system. However, in the case of phase-field modeling, the system is considered `\textit{nonuniform}', i.e. `\textit{a system having a spatial variation in one of its intensive scalar properties, such as composition or density}' \cite{CahnHilliard1958}. The total free energy of a nonuniform system of volume $\Omega$ is given by,
+    \begin{equation}
+        \begin{aligned}
+            \mathcal{F}(c) &= \int_{\Omega} f d\Omega \ ,\\
+            \text{with} \quad f &= f(c, \nabla c, \nabla^2 c, \ldots)\, .
+        \end{aligned}
+    \end{equation}
+    The local free energy density $f$ can be expanded in a Taylor series around $f_0$, the free energy of a uniform system or the bulk free energy density. Thus, the bulk free energy density $f_0$ represents the `\textit{interaction of different components in a homogeneous system}' \cite{Wu2022}. The thermodynamically relevant expression is logarithmic (Helmholtz) and is given by \cite{LeeHuhJeongShinYunKim2014},
+    \begin{equation}
+        f_0(c) = \frac{1}{N_a}\{\omega c (1-c) + RT \left[(1-c)\ln{(1-c)} + c \ln{c}\right]\}
+        \label{eq:1-free-energy}\ ,
+    \end{equation}
+    with $N_a$ the Avogadro number, $\omega$ the regular solution parameter, $R$ the perfect gas constant, $T$ the temperature and $c$ the composition (more informations in \cite{LeeHuhJeongShinYunKim2014}).\\
+    In practice, the thermodynamically relevant expression of the free energy density of an homogeneous system is replaced by a polynomial approximation of degree four,
+   \begin{equation}
+        f_0(c) = w g(c) = w (c-c_\alpha)^2 (c-c_\beta)^2\ ,
+   \end{equation}
+   where $g(c)$ is the polynomial function, $w$, $c_\alpha$ and $c_\beta$ are constants chosen to fit the positions of the minima and the curvature at the minima, as shown in \autoref{fig:1-free-energy}.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.4\textwidth]{chap1/1-free-energy.png}
+        \caption{Bulk free energy density $f_0$ of a binary mixture and its quartic approximation. \cite{LeeHuhJeongShinYunKim2014}}
+        \label{fig:1-free-energy}
+    \end{figure}
+    After some algebraic manipulations and assuming the system to be centrosymmetric, and thus isotropic, the free energy functional can be rewritten as,
+    \begin{equation}
+        \mathcal{F}(c) =\int_\Omega f_0(c) + \frac{\kappa}{2} |\nabla c|^2 d\Omega \ ,
+    \end{equation}
+    with $\kappa$ the gradient energy coefficient. A more thorough derivation of the total free energy functional of a nonuniform isotropic binary system is available in Moelans et al.~\cite{MoelansBlanpainWollants2008} or in Lee et al.~\cite{LeeHuhJeongShinYunKim2014}.\\
+    This expression of the free energy functional is known as the Ginzburg-Landau \cite{LeeHuhJeongShinYunKim2014,Voorhees2018,MoelansBlanpainWollants2008} free energy functional. 
+    Thermodynamics informs us that for a closed system, at fixed temperature and volume, to be in equilibrium, its free energy must be minimized. Thus, an equilibrium state is reached when the composition field $c$ is such that it extremizes the free energy functional, 
+    \begin{equation}
+        \delta \mathcal{F} = 0\ .
+    \end{equation}
+    After some variational calculus, this leads to the Euler-Lagrange equation \cite{Voorhees2018},
+    \begin{equation}
+        \frac{\partial f_0}{\partial c} - \kappa \nabla^2 c = 0\ .
+        \label{eq:1-euler-lagrange}
+    \end{equation}
+    The solution $c$ to this equation extremizes the free energy functional. However, there are no constraint on the average value of $c$ in the system, i.e. the total mass is not conserved. To ensure mass conservation, a constraint is added through a Lagrange multiplier $\mu$ which leads to,
+    \begin{equation}
+        \mu = \frac{\delta \mathcal{F}}{\delta c} = \frac{\partial f_0}{\partial c} - \kappa \nabla^2 c
+    \end{equation}
+    the generalized chemical potential \cite{Voorhees2018}.\\
+    Some authors skip the discussion on the constraint and directly define the chemical potential as the variational derivative of the free energy functional with respect to the order parameter $c$. 
+    The order parameter $c$ is a conserved quantity and satisfies the continuity equation,
+    \begin{equation}
+        \frac{\partial c}{\partial t} + \nabla \cdot \mathbf{J} = 0\ ,
+    \end{equation}
+    where $\mathbf{J}$, the diffusion flux, is given by,
+    \begin{equation}
+        \mathbf{J} = -M \nabla \mu \ ,
+        \label{eq:1-flux}
+    \end{equation}
+    where the the gradient of the chemical potential $\nabla \mu$ is the driving force of the diffusion, the thermodynamic force, and $M$ is the mobility function \cite{Voorhees2018,MoelansBlanpainWollants2008}. The mobility function $M$ can be a function of the order parameter $c$ as it stems from the combined effect of atomic mobilities of the system constituents \cite{Voorhees2018,MoelansBlanpainWollants2008}.
+    This leads to the Cahn-Hilliard equation,
+    \begin{equation}
+        \frac{\partial c}{\partial t} = \nabla \cdot \left[ M \nabla \left( \frac{\partial f_0}{\partial c} - \kappa \nabla^2 c \right) \right]\ ,
+    \end{equation}
+    with $M$ the mobility parameter which is function of the atomic mobilities of the constituents of the system.
+\subsection{Applications}
+    Phase-field modeling has been used in a wide range of applications from material sciences to biology and biomedical sciences (tumor growth \cite{XiaoFengShi2023}).\\
+    In materials science, different scales can be identified. At the mesoscale, fracture mechanics \cite{XueChengLeiWen2022}, fluid flows \cite{Kim2009}, at the microscale, solidification \cite{KimKim2005}, grain growth and spinodal decomposition \cite{CartaladeYounsiRégnierSchuller2014}, coarsening kinetics \cite{ZhuChenShenTikare1999,KönigRonsinHarting2021}, can be studied following the phase-field formalism. Indeed, provided a careful design of the free energy functional $\mathcal{F}$ of the studied system, different multiphysics problem can be studied. Following this downward trend in system scale, the phase-field formalism has been eventually nanoscale systems.\\
+    Chockalingam et al.~studied the sintering mechanism of silver nanoparticles by exploring the phase field formalism. They were able to compare their numerical results with experimental observations which highlighted the strenghts of the phase field formalism at simulating physics at the nanoscale \cite{ChockalingamKouznetsovaSluisGeers2016}. However, the considered model of sintering was limited to the case of 2D circular particles. Roy et al.~\cite{RoyVarmaGururajan2021} extended the study of the sintering mechanism to the case of 3D nanowires. They were able to produce results which were in good agreement with experimental observations in their idealised case of a free-standing nanowire configuration. The goal of the present work is to extend the results of Roy et al.~to a more complex case of nanowire configurations, nanowires deposited on a substrate. This configuration would account for the interaction of the nanowires with the flat substrate they are deposited on, thus completing the model of sintering of nanowires.

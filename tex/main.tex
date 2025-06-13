@@ -1,0 +1,90 @@
+\documentclass[twoside, 12pt]{extreport}
+\setlength{\headheight}{14.49998pt}
+\addtolength{\topmargin}{-2.49998pt}
+
+%%%%%%%%%%%%
+% Packages %
+%%%%%%%%%%%%
+
+\usepackage[english]{babel}
+\usepackage{packages/sleek}
+\usepackage{packages/sleek-title}
+\addto\extrasenglish{
+    \def\chapterautorefname{Chapter}
+    \def\sectionautorefname{Section}
+    \def\subsectionautorefname{Subsection}
+    \def\subsubsectionautorefname{Subsubsection}
+}
+\usepackage{lipsum}
+\usepackage{lmodern}
+\usepackage{oplotsymbl}
+
+%%%%%%%%%%%%%%
+% Title-page %
+%%%%%%%%%%%%%%
+
+\logo{./resources/pdf/logo.pdf}
+\institute{University of Liège}
+\faculty{School of Engineering and Computer Science}
+\title{Numerical study of the morphological instability of metallic nanowires}
+%\subtitle{With a sleeker title-page}
+\author{\textit{Academic supervisor}\\Prof.\ Ngoc Duy \textsc{Nguyen}}
+\supervisor{\textit{Jury members}\\
+            Prof.\ David \textsc{Collignon}\\
+            Prof.\ Benoît \textsc{Vanderheyden}}
+\context{\Large Master's thesis completed by Rayane \textsc{Eloudrhiri}\\
+in order to obtain the degree of Master of Science in Engineering Physics}
+\date{Academic year 2024\ --\ 2025}
+
+%%%%%%%%%%%%%%%%
+% Bibliography %
+%%%%%%%%%%%%%%%%
+
+\addbibresource[datatype=bibtex]{resources/bib/references.bib}
+\graphicspath{ {./resources/pdf/} }
+
+%%%%%%%%%%%%
+% Document %
+%%%%%%%%%%%%
+
+\begin{document}
+    \maketitle
+    \frontmatter{resources/chapters/__frontmatter.tex}
+    \addcontentsline{toc}{chapter}{Introduction}
+    \chapter*{Introduction}\label{chap:intro}
+    \markboth{\textsc{INTRODUCTION}}{}
+    \input{resources/chapters/introduction}
+
+    \chapter{State of the art}\label{chap:1-sota}
+    \input{resources/chapters/1_sota}
+
+    \chapter{Methodology}\label{chap:2-methodology}
+    \input{resources/chapters/2_methodology}
+
+    \addtocontents{toc}{\protect\vspace{15pt}}
+    \chapter{Free-standing nanowire}\label{chap:3-results}
+    \input{resources/chapters/3_results}
+
+    \chapter{Nanowire on substrate}\label{chap:4-substrate}
+    \input{resources/chapters/4_substrate}
+    
+    % \addcontentsline{toc}{chapter}{Conclusion and perspectives}
+    \chapter{Conclusion and perspectives}\label{chap:concl}
+    \input{resources/chapters/conclusion}
+
+    \addcontentsline{toc}{chapter}{Declaration on AI-assisted technologies in the
+writing process}
+    \chapter*{Declaration on AI-assisted technologies in the writing process}
+    The author declares that the content of this thesis is the product of his own personal work, research and ideas, and that any use of AI-assisted technologies has been done solely for the rephrasing of text, without any contribution to the content of ideas or the structure of the thesis.
+
+    \newpage
+    % \addtocontents{toc}{\protect\vspace{15pt}}
+    % \addcontentsline{toc}{chapter}{\Large Appendix}
+    % \appendix
+    % \input{resources/chapters/__appendix}
+    
+    \newpage
+    
+    \printbibliography
+
+\end{document}

@@ -1,0 +1,78 @@
+\documentclass[twoside, 12pt]{extreport}
+\setlength{\headheight}{14.49998pt}
+\addtolength{\topmargin}{-2.49998pt}
+
+%%%%%%%%%%%%
+% Packages %
+%%%%%%%%%%%%
+
+\usepackage[english]{babel}
+\usepackage{packages/sleek}
+\usepackage{packages/sleek-title}
+\usepackage{lipsum}
+\usepackage{lmodern}
+
+%%%%%%%%%%%%%%
+% Title-page %
+%%%%%%%%%%%%%%
+
+\logo{./resources/pdf/logo.pdf}
+\institute{University of Liège}
+\faculty{School of Engineering and Computer Science}
+\title{Thesis Title}
+%\subtitle{With a sleeker title-page}
+\author{\textit{Academic supervisor}\\Prof.\ Name \textsc{Surname}}
+\supervisor{\textit{Jury members}\\
+            Prof.\ Name \textsc{Surname}\\
+            Prof.\ Name \textsc{Surname}}
+\context{\Large Master's thesis completed by Name \textsc{Surname}\\
+in order to obtain the degree of Master of Science in Section}
+\date{Academic year 2023\ --\ 2024}
+
+%%%%%%%%%%%%%%%%
+% Bibliography %
+%%%%%%%%%%%%%%%%
+
+\addbibresource{./resources/bib/references.bib}
+\graphicspath{ {./resources/pdf/} }
+
+%%%%%%%%%%%%
+% Document %
+%%%%%%%%%%%%
+
+\begin{document}
+    \maketitle
+    \frontmatter{resources/chapters/__frontmatter.tex}
+    \addcontentsline{toc}{chapter}{Introduction}
+    \chapter*{Introduction}\label{chap:intro}
+    \markboth{\textsc{INTRODUCTION}}{}
+    \input{resources/chapters/introduction}
+
+     \chapter{Chapter 1}\label{chap:1-sota}
+    \input{resources/chapters/1_chapter}
+
+    \chapter{Chapter 2}\label{chap:2-methodology}
+    \input{resources/chapters/2_chapter}
+
+    \chapter{Chapter 3}\label{chap:3-results}
+    \input{resources/chapters/3_chapter}
+
+    \chapter{Chapter 4}\label{chap:4-substrate}
+    \input{resources/chapters/4_chapter}
+
+    \addcontentsline{toc}{chapter}{Conclusion and perspectives}
+    \chapter*{Conclusion and perspectives}\label{chap:concl}
+    \input{resources/chapters/conclusion}
+
+    
+    \newpage
+    \addtocontents{toc}{\protect\vspace{15pt}}
+    \addcontentsline{toc}{chapter}{\Large Appendix}
+    \appendix
+    \input{resources/chapters/__appendix}
+    
+    \newpage
+    \nocite{*}
+    \printbibliography
+
+\end{document}

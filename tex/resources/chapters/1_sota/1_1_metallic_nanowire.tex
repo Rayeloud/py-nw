@@ -1,0 +1,53 @@
+\subsection{Transparent conducting materials}
+
+    Transparent conducting materials (TCMs) constitute a special class of materials which exhibit both high electrical conductivity and high optical transparency \cite{Bardet2021}. In practice, materials which have high electrical conductivity, such as metals, are optically opaque whereas optically transparent materials such as glass, polymers or certain metal oxides are electrical insulators. 
+    \subsubsection{Optical Transparency and Electrical Conductivity}
+    This tradeoff between electrical conductivity and optical transparency of solid media can be understood in a simplified fashion through energy bandgap theory in solid state physics.\\
+    Indeed, electrical insulators are often optically transparent because of their large energy bandgap, i.e. an energy band in which electrons cannot be located, which allows photons from the visible spectrum to pass through without leading to electronic transitions associated with an absorption process. On the other hand, metals have a high density of states at the Fermi level which leads to high electrical conductivity but also to high absorption of photons in the visible spectrum, associated to their opacity in the visible range. For a more detailed description of energy band gap theory and photon absorption, please refer to Brennan \cite{Brennan2010}. The difference between electrical insulating materials and metals is further illustrated in \autoref{fig:1-bandgap}.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=.75\linewidth]{chap1/1-energy-band}
+        \caption{Energy band diagram of (a) electrical insulators (b) metals. The photon energy $E=h\nu$, where $h$ is the Planck's constant and $\nu$ is the frequency of the incident light, can lead to absorption only if it is larger than the forbidden bandgap. Thus, if the bandgap energy if larger than the highest energy of the visible spectrum, i.e. in the near-ultraviolet range, the material is optically transparent.}
+        \label{fig:1-bandgap}
+    \end{figure}
+
+    \subsubsection{Classification of Transparent Conducting Materials}
+
+    Since the discovery of wide bandgap (above $3.1\,\text{eV}$) semiconductors in the 1950s \cite{Nguyen2022}, TCMs have played an important role in many industrial applications such as solar cells, transparent heaters, touch screens, OLED displays and many others. TCMs are typically used as transparent (conducting) electrodes (TCEs or TEs) in their various applications, where the dual optimization of the electrical conductivity and the optical transparency is crucial. For instance, in solar cell applications, the optical transparency is provided by the transmittance coefficient in the visible spectrum, typically represented by the value at a wavelength of $550\,\text{nm}$ \cite{LangleyGiustiMayousseCelleBelletSimonato2013}.\\\\
+    In 1976, Haacke proposed the following Figure of Merit (FoM) to compare different families of TCMs \cite{Haacke1976}. The FoM is defined as,
+    \begin{equation*}
+        \text{FoM} = \frac{T^{10}}{R_s},
+    \end{equation*}
+    where the power of the transmittance $T$ is chosen such that the FoM is maximized for transmittance values higher than $90\%$. This leads to the iso-values lines in \autoref{fig:1-haacke-fom}. Thus, the region of interest for TCMs can be found in the upper left corner, at high FoM values. One can see that two families of TCMs lie in this region of interest, transparent conducting oxides (TCOs), especially Indium-Tin oxides (ITOs), and metallic nanowire networks, especially Silver-based ones (Ag-MNWs).
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.42\textwidth]{chap1/1-haacke-fom}
+        \caption{Haacke's Figure of Merit (FoM) for different families of TCMs \cite{Nguyen2022}. The iso-values lines represent the FoM. For increasing values of the FoM, the isolines are closer to the upper left corner where the transmittance is maximized and the sheet resistance is minimized. Emerging TCMs are compared to the industry leading ITOs.}
+        \label{fig:1-haacke-fom}
+    \end{figure}
+
+    \subsubsection{Transparent Conducting Oxides}
+
+    Transparent conducting oxides (TCOs) and more particularly Indium-Tin Oxides (ITOs) are the industry leading choice for transparent electrodes. They are heavily-doped wide bandgap (above $3.1\,\text{eV}$) semiconductors. After more than 60 years of research, ITOs have now reached process stability and maturity \cite{MauryaGalvanGautamXu2022}. However, with the fast growing technological market and the consumers needs, new requirements for TCMs have surfaced. In particular, the market now aims towards flexible electronics, therefore the TEs required for these new devices must be able to bend without losing their functionality. Unfortunately, one of the major drawbacks of ITOs is their brittleness. In addition to their mechanical limitations, with the fast growing demand of TEs, the scarcity of Indium and the high production cost in their synthesis \cite{Bellet2017} encouraged the search for alternatives which would alleviate these issues.\\
+    Thus the emerging TCMs must be low cost, use earth-abundant and non toxic chemical element, with competing conductivity and transparency to ITOs. This brings us to the core topic of this thesis: metallic nanowire network TCMs \cite{MauryaGalvanGautamXu2022}.%This leads to the introduction of the center topic of this thesis, metallic nanowire network TCMs.
+    \subsubsection{Metallic Nanowire Networks}
+    Metallic nanowires (MNWs) are part of the emerging TCMs and are amongst the most promising candidates, especially polyol-grown Silver (Ag) nanowires \cite{Sun2003}. Indeed, due to their intrinsically high electrical conductivity, tunable optical transparency and their relatively simple synthesis and deposition method, MNWs have the potential to replace ITOs. TCMs based on MNWs can be achieved by depositing a percolating network of MNWs onto an optically transparent substrate, such as glass.\\
+    A network is said to be percolating when there exists at least one continuous path of conductive material from one side to the other \cite{SohnParkOhKangKim2019}. Thus the electrical conductivity is dependent on the density of the deposited MNWs \cite{BerginChenRathmellCharbonneauLiWiley2012, LagrangeLangleyGiustiJimenezBrechetBellet2015}. However, the denser the network, the less transparent it becomes. This tradeoff is one of the key elements in the optimization of MNW-based TCMs.
+\subsection{Electrical activation methods of Metallic Nanostructures}
+    After depositing the MNWs, the network must be activated to ensure percolation since the contact resistance is initially high between each nanowire \cite{Nguyen2022}. The initial high contact resistance between nanowires is caused by residual organic residues, which originate from the synthesis process and the solution based deposition, and from the initial point-like contact between each nanowire. Indeed, polyol grown nanowire are encapsulated in an organic shell of polyvinylpyrrolidone (PVP) \cite{Sun2003,Nguyen2022}. In addition, metallic nanowires are in suspension in organic solution (e.g. IPA). Thus, when depositing the metallic nanowires onto a substrate, the organic residues mentioned must be removed. This can be achieved by different means, including mechanical pressing, electrical or thermal annealing \cite{JiuSuganuma2016}.\\
+    The most common activation method is the latter, thermal annealing, which consists in heating the network to reduce the contact resistance. Indeed, thermal annealing leads to the desorption of the organic shell associated to the polyol synthesis and to local sintering, i.e. the formation of local weldings between nanowires, triggered by surface energy minimization \cite{Langley2014}.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{chap1/1-thermal-annealing}
+        \caption{Evolution of the electrical resistance with respect to the temperature during thermal annealing during a thermal ramp of $15^\circ\,\text{min}^{-1}$. (a) SEM image of the nanowire as deposited (b) Desorption of the organic residues and first occurence of observable local sintering (c) All junctions are sintered (d) Spheroidization of the whole network. Figure adapted from Langley et al.\ \cite{Langley2014}.}
+        \label{fig:1-thermal-annealing}
+    \end{figure}
+    \autoref{fig:1-thermal-annealing} shows the evolution of the electrical resistance of a AgNW network with respect to the temperature during thermal annealing. Three steps can be identified from it. Starting from the in situ nanowire network in \autoref{fig:1-thermal-annealing}(a), the nanowires undergo,
+    \begin{enumerate}
+        \item Desorption of the organic residues (b)
+        \item Local sintering of the nanowires (b, c).
+        \item Spheroidization of the nanowires (d).
+    \end{enumerate}
+    As can be seen from the figure, when the temperature crosses a certain threshold (in the range of  $300^\circ - 350^\circ$ for AgNW networks), the resistance increases rapidly and the network no longer percolates. SEM images reveals that the nanowires transform into a series of equally-spaced dots which leads to the destruction of percolating paths across the network. This phenomenon is referred to as the morphological instability of the nanowires.
+    % add discussion on Gibbs-Thomson effect ? (melting temperature at low dimension is lower)
+

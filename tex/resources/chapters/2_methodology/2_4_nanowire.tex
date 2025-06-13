@@ -1,0 +1,145 @@
+In this section, the implemented model is used to reproduce a selection of results presented in Roy et al.\ \cite{RoyVarmaGururajan2021} which studied surface-enhanced breakups in free-standing nanowires. The goal is to further validate the presented implementation in the case of 3D phase separation, and particular in the case of the nanowire morphological instability presented in \cite{RoyVarmaGururajan2021}.
+\subsection{Free standing nanowire model}
+    The nanowire is approximated as a free-standing infinitely long cylinder of radius $R_1$. The physical domain is shown in \autoref{fig:2-free-standing-nw}. In addition, two configurations are considered, a single wire and a junction of two wires with an intersection angle of $\theta$. The geometry of the problem is constructed using the \texttt{gmsh} software\ \cite{GeuzaineRemacle}.\\
+    The order parameter $c$ in the phase-field model is defined as an indicator of wether a point belongs to the nanowire, the interface or the vacuum,
+    \begin{equation}
+        c(\mathbf{x}, t) = \begin{cases}
+            1 & \text{if } \mathbf{x}\ \text{in NW bulk (film)}, \\
+            0.5 & \text{if } \mathbf{x}\ \text{on the interface}, \\
+            0 & \text{if } \mathbf{x}\ \text{in vacuum bulk (vapor)}.
+        \end{cases}
+    \end{equation}
+    The contribution from the thermal annealing is modeled by adding a small stochastic perturbation to the order parameter $c$ in the initial condition \cite{BallFinkBowler2003}.
+    \begin{equation}\label{eq:2-c_t}
+        c(\mathbf{x}, 0) = \texttt{make\_composition\_field()} + c_{noise}(0.5-\texttt{RAND()})\ ,
+    \end{equation}
+    with \texttt{make\_composition\_field()} the function which perform the voxelisation algorithm of the prescribed geometry, $c_{noise}$ the amplitude of the stochastic perturbation and $\texttt{RAND()}$ a random number generator.\\
+    The Cahn-Hilliard equation solves the dynamics of a conserved order parameter $c$. Thus using this description, mass conservation is ensured as recalled in \autoref{chap:1_3-phase-field}. In addition, the total free energy is minimized when the system reaches equilibrium. The dynamics implemented being surface-driven by design of $M(c)$, the minimization of the total free energy leads to the minimization of the surface energy of the rods.\\
+    %The phase field approach thus provide the same assumptions as McCallum and Plateau-Rayleigh albeit in a more general framework.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{chap2/2-free-standing-nw.png}
+        \caption{Geometry of the (a) physical domain (b) single wire configuration (c) junction with $\theta = \pi/2$. Visualization performed in \texttt{gmsh}.}
+        \label{fig:2-free-standing-nw}
+    \end{figure}
+\subsection{Voxelisation}
+    As previously mentioned in \autoref{chap:2_2-numerical_method}, the physical domain must be discretized as a regular grid. However, the geometry of the problem can be non trivial and thus leads to challenges in the discretisation. A discrete approximation of a digital object is referred to as a voxelisation \cite{Aleksandrov2021}. Two approaches to voxelisation are presented and discussed in the following.
+    \subsubsection{Binary voxelisation}
+    This approach is performed by first defining a coarse unregular mesh in \texttt{gmsh} and then performing an octree search to find elements which are inside the prescribed volume of the nanowire. The voxelised nanowire is shown in \autoref{fig:2-voxels-sharp}.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\textwidth]{chap2/2-voxel.pdf}
+        \caption{Binary Voxelisation of the single nanowire geometry. (a) Side view (b) Cross-section of the voxelised geometry compared to the actual geometry (dark grey). Visualization performed in \texttt{Paraview}.}
+        \label{fig:2-voxels-sharp}
+    \end{figure}
+    This approach benefits from \texttt{gmsh} built-in CAD engine, which allows to define the geometry with ease. The octree search, performed using the \texttt{gmsh} API, efficiently identifies elements within the prescribed volume of the nanowire. However, for more complex geometries, this method may result in mislabeled grid points due to the coarse mesh, potentially introducing numerical errors. In addition, this approach results in a sharp interface representation of the geometry, which is not consistent with the principles of the phase-field formalism, i.e. the use of diffuse interface to smoothly transition between phases. Nevertheless, for the purpose of validating the model and the implementation, this approach is utilized to reproduce the results presented in Roy et al.~\cite{RoyVarmaGururajan2021}, as their study assumes an initial condition with a sharp interface.\\
+    Methods such as anti-aliasing \cite{Aleksandrov2021}, which purpose is to smooth the interface, can be used to recover a diffuse interface approach. However, instead of relying on the initial binary voxelisation, a more consistent approach, non-binary voxelisation, is presented in the following section.
+    \subsubsection{Non-binary voxelisation}
+    This approach relies on the steady-state solution to the Cahn-Hilliard equation in 1D. The order parameter $c$ is given by,
+    \begin{equation}
+        c(x) = \frac{1}{2}\left[1 - \tanh\left(\frac{x-x_0}{\delta}\right)\right],
+    \end{equation}
+    with $\delta = \sqrt{\frac{2 \kappa}{w}}$ the characteristic length of the diffuse interface, $x_0$ the position of the interface. The steady-state profile is shown in \autoref{fig:1-diffuse-interface}.
+    % \begin{figure}[H]
+    %     \centering
+    %     \includegraphics[width=0.5\textwidth]{chap2/2-1d-profile.pdf}
+    %     \caption{Steady-state 1D profile of the order parameter $c$ as a function of the position $x$. The interface is located at $x_0=0.5$ with $\xi=0.05$.}
+    %     \label{fig:2-1d-profile}
+    % \end{figure}
+    Essentially, the function acts as a mask which smoothly transitions from one phase to the other.
+    More generally, the order parameter $c$ can be defined in 3D as,
+    \begin{equation}
+        c(\mathbf{x}) = \frac{1}{2}\left[ 1 - \tanh\left(\frac{d(\mathbf{x})}{\delta}\right)\right],
+    \end{equation}
+    with $d(\mathbf{x})$ the signed-distance of each point $\mathbf{x}$ in the domain $\Omega$ from the nominal surface of the desired geometry \cite{Katopodes2019}.
+    The signed-distance function $d(\mathbf{x})$ is defined as the distance from the surface of the geometry, with a sign indicating whether the point is inside or outside the geometry. The signed-distance function is defined as,
+    \begin{equation}
+        d(\mathbf{x}) = \begin{cases}
+            -\text{dist}(\mathbf{x}, \partial \Omega_c), & \mathbf{x} \in \Omega_c,\\
+            0, & \mathbf{x} \in \partial \Omega_c,\\
+            +\text{dist}(\mathbf{x}, \partial \Omega_c), &\mathbf{x} \notin \Omega_c,
+        \end{cases}
+    \end{equation}
+    with $\partial \Omega_c$ the nominal surface of the geometry and $\text{dist}(\mathbf{x}, \partial \Omega)=\underset{\mathbf{x}_n \in \partial \Omega}{\text{min}}||\mathbf{x}-\mathbf{x_n}||$ the Euclidean distance from the point $\mathbf{x}$ to the surface $\partial \Omega$. The signed-distance function is illustrated in \autoref{fig:2-signed-distance}.
+    \begin{figure}[H]
+        \centering
+        \begin{subfigure}{0.4\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{chap2/2-signed-distance-function.pdf}
+            \caption{}
+            \label{fig:2-physical-domain}
+        \end{subfigure}%
+        \begin{subfigure}{0.4\textwidth}
+            \centering
+            \includegraphics[trim={10cm 4cm 7cm 5cm}, clip, width=\textwidth]{chap2/2-2-sdf-circle.pdf}
+            \caption{}
+            \label{fig:2-signed-distance-func}
+        \end{subfigure}
+        \caption{(a) Physical domain $\Omega$, the prescribed geometry $\Omega_c$ and the nominal surface $\partial \Omega_c$. (b) The signed-distance function $d(\mathbf{x})$. The function is negative inside the $\Omega_c$ and positive outside.}
+        \label{fig:2-signed-distance}
+    \end{figure}
+    A signed-distance function $d(\mathbf{x})$ can then be defined for the desired geometry of the problem. Thus, the geometry can be voxelised by defining an appropriate signed-distance function $d(\mathbf{x})$ and by discretising the physical domain with a regular grid. The voxelised nanowire is shown in \autoref{fig:2-voxels-diffuse} and a side-by-side comparison with the binary voxelisation of an $x$-$y$ slice is shown in \autoref{fig:2-slice-voxels-diffuse}.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\textwidth]{chap2/2-nb-voxel.pdf}
+        \caption{Non-Binary Voxelisation of the single nanowire geometry. (a) Side view (b) Cross-section of the voxelised geometry. The actual geometry coincides with $c=0.5$. Visualization performed in \texttt{Paraview}.}
+        \label{fig:2-voxels-diffuse}
+    \end{figure}
+    This approach is more flexible and offers a better control over the effect of the stochastic noise. In addition, the resulting voxelised geometry is better aligned with the phase-field formalism as the interface is not sharp and defined in accordance to the model parameters. However, the signed-distance function $d(\mathbf{x})$ must be defined for each geometry and can be challenging for non-trivial geometries.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\textwidth]{chap2/2-binary-vs-non-binary-voxel.pdf}
+        \caption{$x$-$y$ slice of the initial condition in the (a) binary (b) non-binary voxelisation approach. As stated, the non-binary voxelisation provide a smooth transition from one phase to the other. Visualization performed in \texttt{Paraview}.}
+        \label{fig:2-slice-voxels-diffuse}
+    \end{figure}
+
+    \subsection{Results and comparison}
+    Prior to the presentation of the results of the study, the implemented method is compared to the results presented in Roy et al.~\cite{RoyVarmaGururajan2021}. This verification was performed on both, the single wire and the junction, configurations. The simulation parameters used for these battery of tests are presented in \autoref{tab:2-parameters}. For the sake of clarity, the non-dimensionalisation steps of the parameters are detailed in \autoref{chap:3-results}.
+    %Before presenting the main results, reproduction of the results presented in Roy et al.\ \cite{RoyVarmaGururajan2021} is performed on the two configurations i.e.\ single wire and junction. The non-dimensionalisation steps of the parameters are detailed in \autoref{chap:3-results} for the sake of clarity. The simulation parameters used are the following. 
+    \begin{table}[H]
+        \centering
+        \begin{tabular}{ccc}
+            \hline
+            Parameter & Value & Units\\
+            \hline
+            $R_1$ & $6.0$ & -\\
+            $R_2$ & $6.0$ & -\\
+            $\kappa$ & $1.0$ & -\\
+            $w$ & $1.0$ & - \\
+            $M_0$ & $0.5$ & - \\
+            $\alpha$ & $0.5$ & -\\
+            $c_{noise}$ & $10^{-3}$ & -\\
+            $\Delta x$ & $0.5$ & -\\
+            $\Delta t$ & $1.0$ & -\\
+            \hline
+        \end{tabular}
+        \caption{Non-dimensional simulation parameters used by Roy et al.~\cite{RoyVarmaGururajan2021}.}
+        \label{tab:2-parameters}
+    \end{table}
+    \subsubsection{Single wire}
+    The breakups of both infinitely long and finite single free-standing nanowires are respectively shown in \autoref{fig:2-single-wire}. The results of the breakup are in good agreement with Roy's. 
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{chap2/2-single-nw.png}
+        \caption{Single free-standing nanowire simulation from (A) the implemented model (B) Roy et al.~at (a) $t=500$ (b) $t=1500$ (c) $t=2700$ (d) $t=2800$. The initial radii are both $R=R_1$.\ \cite{RoyVarmaGururajan2021}.}
+        \label{fig:2-single-wire}
+    \end{figure}
+    Indeed, the free ends of the finite nanowire retract and bulge out. As the ends retracts, necking starts to form which then lead to the breakup of the nanowire into a series of spherical chunks. In addition, the spherical chunks are not of the same size, due to the coarsening of the wire. In the case of the infinitely long nanowire, the wire starts by coarsening until the instabilities grow sufficiently to induce necking and subsequent breakup of the nanowire.
+    The fragmentation in a series of spherical chunk observed in both simulations is in good agreement with the literature recalled in \autoref{chap:1-sota}. Nichols and Mullins predicted that free-standing rods breakup into a series of chunks due to the surface energy minimization. The fragmentation is mediated by the maximally growing wavelength $\lambda$ of the inital perturbation.
+    %\textcolor{red}{add additional text concerning surface energy}
+    \subsubsection{Junction}
+    The breakups in the junction configuration are presented in \autoref{fig:2-junction}. The observed evolution in good agreement with the results obtained in \cite{RoyVarmaGururajan2021}. 
+    \begin{figure}
+        \centering
+        \includegraphics[width=\textwidth]{chap2/2-junction.png}
+        \caption{Simulation (A) from the implemented model (B) Roy et al.~of the morphological evolution of two intersecting nanowires ($90^\circ$) at (a) $t=1000$ (b) $t=1750$ (c) $t=2500$ (d) $t=2750$ (e) $t=2800$ (f) $t=2900$.\ \cite{RoyVarmaGururajan2021}. The slight differences between frames (e) and (f) are due to the stochastic nature of the initial condition.}
+        \label{fig:2-junction}
+    \end{figure}
+    The proximity between the two nanowires leads to local sintering. In addition, necking occurs at the location of the junction on each nanowire as shown in \autoref{fig:2-junction-zoom}. As the wires coarsen and the instabilities grow, further necking is observed at the junction which lead to the breakup of the junction, leaving behind a spherical chunk. Afterwards, the free ends of the broken junction retracts and bulge out, leading to the formation of spherical chunks. This highlights two distinct mechanisms, the initial breakup of the junction into a central chunk and the subsequent breakup of the free ends. The free ends breakup is similar to the one observed in the single wire configuration.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.9\textwidth]{chap2/2-zoom-junction.png}
+        \caption{Zoom on the junction of the two nanowires at (a) $t=500$ (b) $t=1000$ (c) $t=1750$ from the implemented model. The junction simultaneously undergoes necking and coarsening. }
+        \label{fig:2-junction-zoom}
+    \end{figure}
+    The implemented model is thus able to reproduce the results presented in Roy et al.~\cite{RoyVarmaGururajan2021}. In the following chapter, the study performed by Roy et al.~is extended by first discussing the influence of the non-dimensionalisition of the parameters on the dynamics. Then, thanks to the implemented voxelisation algorithm, the influence of the initial shape of the nanowire is studied.

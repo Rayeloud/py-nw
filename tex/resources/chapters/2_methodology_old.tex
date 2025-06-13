@@ -1,0 +1,58 @@
+\section{Phase field modelling of a binary mixture}
+    The evolution of the composition of a binary, ternary, n-ary mixture can be studied thanks to the Cahn-Hilliard equation which describes the evolution of a particle in the system as such
+    \begin{equation}
+        \frac{\partial c}{\partial t} = M \nabla^2 \mu 
+    \end{equation}
+    where $c$ is a non-dimensional description of the composition of a particle bounded between 0 and 1, $\mathbf{M} = M \delta_{ij}$ is the mobility tensor (isotropic in this case) and $\mu$ is the chemical potential of the particle.
+
+    The chemical potential is defined as the variational derivative of the Gibbs free energy:
+    \begin{equation}
+        \mu = \frac{1}{N_v} \frac{\delta F}{\delta c}
+    \end{equation}
+    where the Gibbs free energy function of an \textbf{isotropic} binary mixture is described as follows: % cite properly cahn and hilliard paper
+    \begin{equation}
+        F(c) = N_v\int_\Omega f_0 + \frac{\kappa}{2} |\nabla c|^2 + \dots\,d\Omega
+    \end{equation}
+    Performing the variational derivative yields the following expression of the chemical potential:
+    \begin{equation}
+        \mu = \frac{\partial f_0}{\partial c} - \kappa \Delta c + \dots
+    \end{equation}
+    The evolution of the conserved variable $c$ writes:
+    \begin{equation}
+        \frac{\partial c}{\partial t} = \Vec{\nabla}\left[M \Vec{\nabla}\left(\frac{\partial f_0}{\partial c} - \kappa\Delta c \right) \right]
+    \end{equation}
+    To capture the interface-driven diffusion that takes place in the case of nanowire breakup dynamics, the mobility is defined as a function of the composition field:
+    \begin{equation}
+        M=(1-ac^2)
+    \end{equation}
+    where $a=0$ represents bulk-diffusion controlled dynamics and $a=1$ represents interface-diffusion controlled dynamics (where $c=\pm1$ are the pure composition.).\\
+    The bulk free energy $f_0$ of the binary mixture is described as a double-well potential:
+    \begin{equation}
+        f_0 = Ac^2(1-c^2)
+    \end{equation}
+    with $A$ an additional parameter which represents the height of the barrier.\\
+    Thus, the evolution of the composition field writes:
+        \begin{equation}
+        \frac{\partial c}{\partial t} = \Vec{\nabla}\left[(1-ac^2) \Vec{\nabla}\left(g(c) - \kappa\Delta c \right) \right]
+    \end{equation}
+    where $g(c)=\frac{\partial f_0}{\partial c}$.
+    \section{Numerical method}
+    In order to solve the equation numerically, the Spectral Fourier method scheme is used instead of finite-difference methods. The method transforms the partial differential equation into a sequence of ordinary differential equations in the Fourier space:
+    \begin{equation}
+        \frac{\partial \hat{c}}{\partial t} = j\mathbf{k} \left\{ \phi (1-ac^2) \left[ j\mathbf{k}' (\hat{g} + \kappa {k'}^2 \hat{c}) \right]_r \right\}_k
+    \end{equation}
+    where $\mathbf{k}$ is a vector in the Fourier space and $k$ is its magnitude, $\hat{(.)}$ represents a quantity in the Fourier space. $\{.\}_k$ and $[.]_r$  represents respectively the forward and inverse Fourier transform of the quantity in, the square brackets and the curly brackets. 
+    The first order differential equation can be solved using the forward Euler explicit method:
+    \begin{equation}
+        \hat{c}^{t+\Delta t}-\hat{c}^{t} = j\Delta t\mathbf{k} \left\{ (1-ac^2) \left[ j\mathbf{k}' (\hat{g} + \kappa {k'}^2 \hat{c}) \right]_r^t \right\}_k
+    \end{equation}
+    However, the considered scheme has a very restricting constraint on the time discretization. To alleviate the constraint on it, a semi-implicit treatment is performed on the explicit scheme. To do so, the mobility term is split into two parts: $\xi$ and $(1-ac^2) - \xi$. This treatment yields the following:
+    \begin{equation}
+        \hat{c}^{t+\Delta t}-\hat{c}^{t} = j\Delta t\mathbf{k} \left\{ (\xi + 1-ac^2 -\xi) \left[ j\mathbf{k}' (\hat{g} + \kappa {k'}^2 \hat{c}) \right]_r^t \right\}_k
+    \end{equation}
+    which in turn writes:
+    \begin{equation}
+        (1+\xi \Delta t \kappa k^4)\hat{c}^{t+\Delta t} = (1+\xi \Delta t \kappa k^4)\hat{c}^{t} + j\Delta t \mathbf{k} \left\{ (1-ac^2) \left[ j\mathbf{k}' (\hat{g} + \kappa {k'}^2 \hat{c}) \right]_r^t \right\}_k
+    \end{equation}
+    for the considered mobility, the optimal value of $\xi$ is the one which satisfy the following condition: $\xi=\frac{1}{2}\left[\text{max}(M(c))+\text{min}(M(c))\right]$.
+    The scheme is now slightly more computationally expensive than the explicit scheme but the constraint on the time discretization is greatly alleviated.

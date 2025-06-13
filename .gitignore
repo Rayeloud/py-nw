@@ -19,6 +19,21 @@ __pycache__/
 # logs
 logs/
 
+# tex output files
+*.pdf
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
+*.toc
+*.run.xml
+.*.md
+__*__.md
+
 # output files
 *.vtk
 *.png
